@@ -34,6 +34,7 @@
 idCVar net_predictionErrorDecay( "net_predictionErrorDecay", "112", CVAR_FLOAT | CVAR_GAME | CVAR_NOCHEAT, "time in milliseconds it takes to fade away prediction errors", 0.0f, 200.0f );
 idCVar net_showPredictionError( "net_showPredictionError", "-1", CVAR_INTEGER | CVAR_GAME | CVAR_NOCHEAT, "show prediction errors for the given client", -1, MAX_CLIENTS );
 
+idCVar pm_cursor("pm_cursor", "1", CVAR_GAME | CVAR_BOOL | CVAR_ARCHIVE, "Enable/disable Crosshair");
 
 /*
 ===============================================================================
@@ -1126,6 +1127,8 @@ idPlayer::idPlayer() {
 	forceScoreBoard			= false;
 	forceScoreBoardTime		= 0;
 	forceRespawn			= false;
+
+	istps					= false;
 // RITUAL BEGIN
 // squirrel: added DeadZone multiplayer mode
 	allowedToRespawn		= true;
@@ -1611,6 +1614,11 @@ void idPlayer::Init( void ) {
 		value = spawnArgs.GetString( "model" );
 	}
 
+	if (istps && !pm_thirdPerson.GetBool()) {
+		pm_thirdPerson.SetBool(true);
+		istps = false;
+	}
+
 	if( gameLocal.isMultiplayer ) {
 		UpdateModelSetup( true );
 	} else {
@@ -1626,6 +1634,9 @@ void idPlayer::Init( void ) {
 	if ( cursor ) {
  		cursor->SetStateInt( "talkcursor", 0 );
 		cursor->HandleNamedEvent( "showCrossCombat" );
+		if (pm_cursor.GetBool()){
+			cursor->SetStateInt("none", 0);
+		}
 	}
 
 	if ( !gameLocal.isMultiplayer ) {
@@ -2979,6 +2990,7 @@ void idPlayer::SavePersistantInfo( void ) {
 	inventory.GetPersistantData( playerInfo );
 	playerInfo.SetInt( "health", health );
 	playerInfo.SetInt( "current_weapon", currentWeapon );
+	playerInfo.SetBool("istps", istps);
 }
 
 /*
@@ -2993,6 +3005,7 @@ void idPlayer::RestorePersistantInfo( void ) {
  		gameLocal.persistentPlayerInfo[entityNumber].Clear();
  	}
  
+	istps = spawnArgs.GetInt("istps");
 	spawnArgs.Copy( gameLocal.persistentPlayerInfo[entityNumber] );
 
 	inventory.RestoreInventory( this, spawnArgs );
@@ -3650,11 +3663,26 @@ void idPlayer::DrawHUD( idUserInterface *_hud ) {
 
 	if ( objectiveSystemOpen ) {
 		if ( !GuiActive() ) {
-			// showing weapon zoom gui when objectives are open because that's the way I'z told to make it werkz
-			if ( weapon && weapon->GetZoomGui( ) && zoomed ) {
-				weapon->GetZoomGui( )->Redraw( gameLocal.time );
+
+			if (istps) {
+				pm_thirdPerson.SetBool(true);
+				istps = false;
+			}
+			
+				// showing weapon zoom gui when objectives are open because that's the way I'z told to make it werkz
+				if (weapon && weapon->GetZoomGui() && zoomed && pm_cursor.GetBool()) {
+					weapon->GetZoomGui()->Redraw(gameLocal.time);
+				}
+		}
+		else if (_hud && GetHud()){
+			
+
+			if (pm_thirdPerson.GetBool()) {
+				pm_thirdPerson.SetBool(false);
+				istps = true;
 			}
 		}
+
 		return;
 	}
 
@@ -10792,6 +10820,7 @@ void idPlayer::OffsetThirdPersonView( float angle, float range, float height, bo
 	focusPoint = origin + angles.ToForward() * THIRD_PERSON_FOCUS_DISTANCE;
 	focusPoint.z += height;
 	view = origin;
+	view.z += 8 + height;
 // RAVEN BEGIN
 // abahr: taking into account gravity
 	view += physicsObj.GetGravityAxis()[2] * (8.0f + height);
@@ -10898,9 +10927,21 @@ void idPlayer::GetViewPos( idVec3 &origin, idMat3 &axis ) const {
 
 		axis = angles.ToMat3() * physicsObj.GetGravityAxis();
 
+		
+		//origin += physicsObj.GetGravityNormal() * g_viewNodalZ.GetFloat();
+
+		// Move pivot point down so looking straight ahead is a no-op on the Z
+		const idVec3& gravityVector = physicsObj.GetGravityNormal();
+		origin += gravityVector * g_viewNodalZ.GetFloat();
+		//origin += axis[0] * g_viewNodalX.GetFloat() + axis[2] * g_viewNodalZ.GetFloat();		//Removed for below code
+
 		// adjust the origin based on the camera nodal distance (eye distance from neck)
-		origin += physicsObj.GetGravityNormal() * g_viewNodalZ.GetFloat();
-		origin += axis[0] * g_viewNodalX.GetFloat() + axis[2] * g_viewNodalZ.GetFloat();
+		if (pm_thirdPerson.GetBool()) {
+			origin += axis[0] * g_viewNodalX.GetFloat() + axis[1] * 8 + axis[2] * g_viewNodalZ.GetFloat();
+		}
+		else {
+			origin += axis[0] * g_viewNodalX.GetFloat() + axis[2] * g_viewNodalZ.GetFloat();
+		}
 	}
 }
 

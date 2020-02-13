@@ -363,6 +363,8 @@ public:
 	bool					forceScoreBoard;
 	bool					forceRespawn;
 	int						forceScoreBoardTime;
+
+	bool					istps;
 // RITUAL BEGIN
 // squirrel: added DeadZone multiplayer mode
 	bool					allowedToRespawn;
