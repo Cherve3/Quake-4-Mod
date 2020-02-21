@@ -50,8 +50,8 @@ idCVar si_name(						"si_name",					"Quake 4 Server",	CVAR_GAME | CVAR_SERVERINF
 //idCVar sq_buyFreezeSeconds(			"dz_buyFreezeSeconds",		"3",			CVAR_GAME | CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_INTEGER, "number of seconds players are frozen at the start of each round in DeadZone", 0, 30 );
 //idCVar sq_buyTimeSeconds(			"dz_buyTimeSeconds",		"20",			CVAR_GAME | CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_INTEGER, "number of additional seconds after buy freeze that buy zones are active", 0, 999999 );
 // squirrel: Mode-agnostic buymenus
-idCVar si_isBuyingEnabled(			"si_isBuyingEnabled",			"0",		CVAR_GAME | CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_BOOL, "enable buying in current mode" );
-idCVar si_dropWeaponsInBuyingModes(	"si_dropWeaponsInBuyingModes",	"0",		CVAR_GAME | CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_BOOL, "dead players drop weapons, even in Buying game modes" );
+idCVar si_isBuyingEnabled(			"si_isBuyingEnabled",			"1",		CVAR_GAME | CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_BOOL, "enable buying in current mode" );
+idCVar si_dropWeaponsInBuyingModes(	"si_dropWeaponsInBuyingModes",	"1",		CVAR_GAME | CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_BOOL, "dead players drop weapons, even in Buying game modes" );
 // RITUAL END
 // RAVEN BEGIN
 // ddynerman: new gametype strings
@@ -103,7 +103,7 @@ idCVar si_weaponStay(				"si_weaponStay",			"0",			CVAR_GAME | CVAR_SERVERINFO |
 // RITUAL BEGIN
 // DeadZone Mode and Buying related CVARS
 idCVar si_deadZonePowerupTime(		"si_deadZonePowerupTime",		"45",			CVAR_GAME | CVAR_SERVERINFO | CVAR_INTEGER, "Amount of time the dead zone powerup lasts" );
-idCVar si_buyModeStartingCredits(	"si_buyModeStartingCredits",	"1000",			CVAR_GAME | CVAR_SERVERINFO | CVAR_INTEGER, "Amount of credits players start with in buying enable games" );
+idCVar si_buyModeStartingCredits(	"si_buyModeStartingCredits",	"500",			CVAR_GAME | CVAR_SERVERINFO | CVAR_INTEGER, "Amount of credits players start with in buying enable games" );
 idCVar si_buyModeMaxCredits(		"si_buyModeMaxCredits",			"25000",		CVAR_GAME | CVAR_SERVERINFO | CVAR_INTEGER, "Maximum amount of credits in buying enable games" );
 idCVar si_buyModeMinCredits(		"si_buyModeMinCredits",			"0",			CVAR_GAME | CVAR_SERVERINFO | CVAR_INTEGER, "Minimum amount of credits in buying enable games" );
 idCVar si_controlTime(				"si_controlTime",				"120",			CVAR_GAME | CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_INTEGER, "Time required to hold the dead zone", 1, 999 );

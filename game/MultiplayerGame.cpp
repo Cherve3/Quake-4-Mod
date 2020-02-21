@@ -9117,7 +9117,8 @@ idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode
 ================
 */
 bool idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode( void ) {
-	if ( !gameLocal.isMultiplayer ) {
+	if (!gameLocal.isMultiplayer || gameLocal.gameType == GAME_SP) {
+		gameLocal.Printf("Buying is allowed");
 		return false;
 	}
 

@@ -1343,6 +1343,7 @@ idPlayer::idPlayer() {
 	}
 
 	itemCosts = NULL;
+	buildCosts = NULL;
 
 	teamHealthRegen		= NULL;
 	teamHealthRegenPending	= false;
@@ -7261,7 +7262,7 @@ void idPlayer::UpdateFocus( void ) {
 			// clamp the mouse to the corner
 			const char*	command;
 			sysEvent_t	ev;
- 			ev = sys->GenerateMouseMoveEvent( -2000, -2000 );
+/* 			ev = sys->GenerateMouseMoveEvent( -2000, -2000 );
 			command = ui->HandleEvent( &ev, gameLocal.time );
   			HandleGuiCommands( ent, command );
 
@@ -7269,7 +7270,7 @@ void idPlayer::UpdateFocus( void ) {
  			ev = sys->GenerateMouseMoveEvent( pt.x * SCREEN_WIDTH, pt.y * SCREEN_HEIGHT );
 			command = ui->HandleEvent( &ev, gameLocal.time );
  			HandleGuiCommands( ent, command );
-			
+*/			
 #ifdef _XENON
 			int usepad = 0;
 			if ( focusUI ) {
@@ -8190,6 +8191,13 @@ int idPlayer::GetItemCost( const char* itemName ) {
 	return itemCosts->dict.GetInt( itemName, "99999" );
 }
 
+int idPlayer::GetBuildCost(const char* buildingName) {
+	if (!buildCosts) {
+		assert(false);
+		return 99999;
+	}
+	return buildCosts->dict.GetInt(buildingName, "99999");
+}
 /*
 ==============
 GetItemBuyImpulse
@@ -8328,6 +8336,46 @@ itemBuyStatus_t idPlayer::ItemBuyStatus( const char* itemName )
 
 	return IBS_CAN_BUY;
 }
+//CHERVE START
+buildBuyStatus_t idPlayer::buildBuyStatus(const char* buildingName)
+{
+	idStr buildNameStr = buildingName;
+	if (buildNameStr == "notimplemented")
+	{
+		return B_NOT_ALLOWED;
+	}
+	else if (buildNameStr == "command_center")
+	{
+		if (buildNameStr){
+			return B_NOT_ALLOWED;
+		}
+	}
+	else if (buildNameStr == "barracks")
+	{
+		// If we are full of ammo for all weapons, you can't buy the ammo refill anymore.
+		bool fullAmmo = true;
+		for (int i = 0; i < MAX_AMMOTYPES; i++)
+		{
+			if (inventory.ammo[i] != inventory.MaxAmmoForAmmoClass(this, rvWeapon::GetAmmoNameForIndex(i)))
+				fullAmmo = false;
+		}
+		if (fullAmmo)
+			return B_NOT_ALLOWED;
+	}
+	else if (buildNameStr == "depot")
+	{
+		return B_NOT_ALLOWED;
+	}
+
+	int cost = GetBuildCost(buildingName);
+	if (cost > inventory.resource_amount)
+	{
+		return B_CANNOT_AFFORD;
+	}
+
+	return B_CAN_BUY;
+}
+//CHERVE END
 
 /*
 ==============
@@ -8442,6 +8490,44 @@ bool idPlayer::AttemptToBuyItem( const char* itemName )
 	}
 
 	GiveStuffToPlayer( this, itemName, NULL );
+	gameLocal.mpGame.RedrawLocalBuyMenu();
+	return true;
+}
+
+bool idPlayer::AttemptToBuyBuild(const char* itemName)
+{
+	if (gameLocal.isClient) {
+		return false;
+	}
+
+	if (!itemName) {
+		return false;
+	}
+
+	int itemCost = GetItemCost(itemName);
+
+	/// Check if the player is allowed to buy this item
+	if (!CanBuyItem(itemName))
+	{
+		return false;
+	}
+
+	const char* playerName = GetUserInfo()->GetString("ui_name");
+	common->DPrintf("Player %s about to buy item %s; player has %d (%g) credits, cost is %d\n", playerName, itemName, (int)buyMenuCash, buyMenuCash, itemCost);
+
+	buyMenuCash -= (float)itemCost;
+
+	common->DPrintf("Player %s just bought item %s; player now has %d (%g) credits, cost was %d\n", playerName, itemName, (int)buyMenuCash, buyMenuCash, itemCost);
+
+
+	// Team-based effects
+	idStr itemNameStr = itemName;
+
+	if (itemNameStr == "ammo_regen" || itemNameStr == "health_regen" || itemNameStr == "damage_boost") {
+		return AttemptToBuyTeamPowerup(itemName);
+	}
+
+	GiveStuffToPlayer(this, itemName, NULL);
 	gameLocal.mpGame.RedrawLocalBuyMenu();
 	return true;
 }
@@ -8607,6 +8693,18 @@ void idPlayer::PerformImpulse( int impulse ) {
 			idFuncRadioChatter::RepeatLast();
 			break;
 		}
+
+//CHERVE START
+		case IMPULSE_41:	
+		case IMPULSE_42:	break; // Unused
+		case IMPULSE_43:	break; // Unused
+		case IMPULSE_44:	break; // Unused
+		case IMPULSE_45:	break; // Unused
+		case IMPULSE_46:	break; // Unused
+		case IMPULSE_47:	break; // Unused
+		case IMPULSE_48:	break; // Unused
+		case IMPULSE_49:	break; // Unused
+//CHERVE END
 
 // RITUAL BEGIN
 // squirrel: Mode-agnostic buymenus
@@ -9220,6 +9318,10 @@ void idPlayer::UpdateHud( void ) {
  	} else {
  		hud->SetStateString( "hudLag", "0" );
  	}
+
+	if (IMPULSE_111){
+		hud->HandleNamedEvent("showbuild");
+	}
 }
 
 /*

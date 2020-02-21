@@ -190,6 +190,14 @@ typedef enum {
 	IBS_CANNOT_AFFORD = 3,
 } itemBuyStatus_t;
 
+//CHERVE START
+typedef enum {
+	B_CAN_BUY = 0,
+	B_NOT_ALLOWED = 1,
+	B_CANNOT_AFFORD = 2,
+} buildBuyStatus_t;
+//CHERVE END
+
 const int	ASYNC_PLAYER_TOURNEY_STATUS_BITS = idMath::BitsForInteger( PTS_NUM_STATES );
 
 class idInventory {
@@ -622,6 +630,11 @@ public:
 	bool					CanBuy( void );
 	int						CanSelectWeapon				( const char* weaponName );
 	int						GetItemCost(const char* itemName);
+//CHERVE START
+	bool					AttemptToBuyBuild(const char* buildingName);
+	int						GetBuildCost(const char* buildingName);
+//CHERVE END
+
 // RITUAL END
 	void					PerformImpulse( int impulse );
 	void					Spectate( bool spectate, bool force = false );
@@ -792,6 +805,7 @@ public:
 // RITUAL BEGIN
 // squirrel: added DeadZone multiplayer
 	itemBuyStatus_t			ItemBuyStatus( const char* itemName );
+	buildBuyStatus_t		buildBuyStatus( const char* buildingName);
 	bool					CanBuyItem( const char* itemName );
 	void					GiveCash( float cashDeltaAmount );
 	void					ClampCash( float minCash, float maxCash );
@@ -1007,6 +1021,7 @@ private:
 	int						oldInventoryWeapons;
 
 	const idDeclEntityDef*	itemCosts;
+	const idDeclEntityDef*	buildCosts;
 
 	bool					WantSmoothing( void ) const;
 	void					PredictionErrorDecay( void );

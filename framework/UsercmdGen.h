@@ -72,6 +72,16 @@ const int IMPULSE_28			= 28;			// vote yes
 const int IMPULSE_29			= 29;			// vote no
 const int IMPULSE_40			= 40;			// repeast last radio chatter
 
+const int IMPULSE_41			= 41;			// select all marines with machineguns
+const int IMPULSE_42			= 42;			// select all marines with shotguns
+const int IMPULSE_43			= 43;			//select all medics
+const int IMPULSE_44			= 44;			// select all engineers
+const int IMPULSE_45			= 45;			// <unused>
+const int IMPULSE_46			= 46;			// <unused>
+const int IMPULSE_47			= 47;			// <unused>
+const int IMPULSE_48			= 48;			// <unused>
+const int IMPULSE_49			= 49;			// <unused>
+
 // RAVEN BEGIN
 // bdube: added flashlight
 const int IMPULSE_50			= 50;			// activate flashlight

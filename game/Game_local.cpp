@@ -333,7 +333,7 @@ void idGameLocal::Clear( void ) {
 	playerConnectedAreas.i = -1;
 	playerConnectedAreas.h = -1;
 	gamestate = GAMESTATE_UNINITIALIZED;
-	skipCinematic = false;
+	skipCinematic = true;
 	influenceActive = false;
 
 	localClientNum = 0;
