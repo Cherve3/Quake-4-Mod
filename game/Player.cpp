@@ -208,7 +208,7 @@ void idInventory::Clear( void ) {
 	maxarmor			= 0;
 	secretAreasDiscovered = 0;
 	resource_amount		= 0;
-
+	
 	memset( ammo, 0, sizeof( ammo ) );
 
 	ClearPowerUps();
@@ -1111,10 +1111,22 @@ idPlayer::idPlayer() {
 	weapon					= NULL;
 
 	hud						= NULL;
-	mphud					= NULL;
+	mphud					= NULL;	
 	objectiveSystem			= NULL;
 	objectiveSystemOpen		= false;
 	showNewObjectives		= false;
+
+//CHERVE START
+	buyMenu = NULL;
+
+	boughtCommand			= false;
+	boughtBarracks			= false;
+	boughtDepot				= false;
+
+	hasCommand				= false;
+	hasBarracks				= false;
+	hasDepot				= false;
+//CHERVE END
 #ifdef _XENON
 	g_ObjectiveSystemOpen	= false;
 #endif
@@ -3759,7 +3771,7 @@ void idPlayer::DrawHUD( idUserInterface *_hud ) {
 		// weapon targeting crosshair
 		if ( !GuiActive() ) {
 			if ( weapon && weapon->GetZoomGui( ) && zoomed ) {
-				weapon->GetZoomGui( )->Redraw( gameLocal.time );
+				//weapon->GetZoomGui( )->Redraw( gameLocal.time );
 			}
 // RAVEN BEGIN
 // mekberg: removed check for weapon->ShowCrosshair.
@@ -8337,34 +8349,55 @@ itemBuyStatus_t idPlayer::ItemBuyStatus( const char* itemName )
 	return IBS_CAN_BUY;
 }
 //CHERVE START
-buildBuyStatus_t idPlayer::buildBuyStatus(const char* buildingName)
+buildBuyStatus_t idPlayer::BuildBuyStatus(const char* buildingName)
 {
 	idStr buildNameStr = buildingName;
+	
 	if (buildNameStr == "notimplemented")
 	{
 		return B_NOT_ALLOWED;
 	}
 	else if (buildNameStr == "command_center")
 	{
-		if (buildNameStr){
+		if (inventory.resource_amount < inventory.comm_center.price){
+			gameLocal.Printf("Not enough resources to buy command center.");
+			return B_CANNOT_AFFORD;
+		}
+		else if (inventory.resource_amount >= inventory.comm_center.price){
+			gameLocal.Printf("Can buy the command center.");
+			return B_CAN_BUY;
+		}
+		else{
 			return B_NOT_ALLOWED;
 		}
 	}
 	else if (buildNameStr == "barracks")
 	{
-		// If we are full of ammo for all weapons, you can't buy the ammo refill anymore.
-		bool fullAmmo = true;
-		for (int i = 0; i < MAX_AMMOTYPES; i++)
-		{
-			if (inventory.ammo[i] != inventory.MaxAmmoForAmmoClass(this, rvWeapon::GetAmmoNameForIndex(i)))
-				fullAmmo = false;
+		if (inventory.resource_amount < inventory.barracks.price){
+			gameLocal.Printf("Not enough resources to buy barracks.");
+			return B_CANNOT_AFFORD;
 		}
-		if (fullAmmo)
+		else if (inventory.resource_amount >= inventory.barracks.price){
+			gameLocal.Printf("Can buy the barracks.");
+			return B_CAN_BUY;
+		}
+		else{
 			return B_NOT_ALLOWED;
+		}
 	}
 	else if (buildNameStr == "depot")
 	{
-		return B_NOT_ALLOWED;
+		if (inventory.resource_amount < inventory.depot.price){
+			gameLocal.Printf("Not enough resource to buy depot.");
+			return B_CANNOT_AFFORD;
+		}
+		else if (inventory.resource_amount >= inventory.depot.price){
+			gameLocal.Printf("Can buy the depot.");
+			return B_CAN_BUY;
+		}
+		else{
+			return B_NOT_ALLOWED;
+		}
 	}
 
 	int cost = GetBuildCost(buildingName);

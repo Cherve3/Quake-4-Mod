@@ -216,6 +216,9 @@ public:
 	int						powerupEndTime[ POWERUP_MAX ];
 	int						weaponMods[ MAX_WEAPONS ];
 	int						resource_amount;					//current amount of resources
+	idItem					comm_center;
+	idItem					barracks;
+	idItem					depot;
 
  	// multiplayer
  	int						ammoPredictTime;
@@ -349,6 +352,7 @@ public:
 
  	idUserInterface *		hud;				// Common hud
 	idUserInterface *		mphud;				// hud overlay containing MP elements
+	idUserInterface *		buyMenu;			// menu to buy buildings/units
 	
 	idUserInterface *		objectiveSystem;
 	idUserInterface *		cinematicHud;
@@ -356,6 +360,14 @@ public:
 	bool					objectiveButtonReleased;
 	bool					disableHud;
 	bool					showNewObjectives;
+
+	bool					boughtCommand;		//Checks if player bought command center
+	bool					boughtBarracks;		//Checks if player bought barracks
+	bool					boughtDepot;		//Checks if player bought vehicle depot
+
+	bool					hasCommand;			//Checks if player built command center
+	bool					hasBarracks;		//Checks if player built barracks
+	bool					hasDepot;			//Checks if player built vehicle depot
 
 	int						lastDmgTime;
 	int						deathClearContentsTime;
@@ -805,7 +817,7 @@ public:
 // RITUAL BEGIN
 // squirrel: added DeadZone multiplayer
 	itemBuyStatus_t			ItemBuyStatus( const char* itemName );
-	buildBuyStatus_t		buildBuyStatus( const char* buildingName);
+	buildBuyStatus_t		BuildBuyStatus( const char* buildingName);
 	bool					CanBuyItem( const char* itemName );
 	void					GiveCash( float cashDeltaAmount );
 	void					ClampCash( float minCash, float maxCash );

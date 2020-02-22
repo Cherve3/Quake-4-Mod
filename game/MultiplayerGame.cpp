@@ -3504,6 +3504,10 @@ void idMultiplayerGame::SetupBuyMenuItems()
 	buyMenu->SetStateInt( "buyStatus_special1", player->ItemBuyStatus( "health_regen" ) );
 	buyMenu->SetStateInt( "buyStatus_special2", player->ItemBuyStatus( "damage_boost" ) );
 
+	buyMenu->SetStateInt("buyStatus_comm", player->ItemBuyStatus("comm_center") );
+	buyMenu->SetStateInt("buyStatus_barracks", player->ItemBuyStatus("barracks"));
+	buyMenu->SetStateInt("buyStatus_depot", player->ItemBuyStatus("depot"));
+
 	buyMenu->SetStateInt( "playerTeam", player->team );
 
 	if ( player->weapon )
@@ -9061,10 +9065,12 @@ idMultiplayerGame::OpenLocalBuyMenu
 void idMultiplayerGame::OpenLocalBuyMenu( void )
 {
 	// Buy menu work in progress
-	//if ( gameLocal.mpGame.GetCurrentMenu() == 4 )
-	//{	
-	//		return;
-	//}
+	if (gameLocal.gameType == GAME_SP && gameLocal.mpGame.GetCurrentMenu() == 1)
+	{
+		
+		gameLocal.Printf("BuyMenu open");
+			return;
+	}
 
 	if ( currentMenu == 4 )
 		return; // Already open
@@ -9117,8 +9123,12 @@ idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode
 ================
 */
 bool idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode( void ) {
-	if (!gameLocal.isMultiplayer || gameLocal.gameType == GAME_SP) {
-		gameLocal.Printf("Buying is allowed");
+	if (!gameLocal.isMultiplayer && gameLocal.gameType == GAME_SP) {
+		gameLocal.Printf("Buying is allowed\n");
+		return true;
+	}
+	else{
+		gameLocal.Printf("Buying is not allowed\n");
 		return false;
 	}
 

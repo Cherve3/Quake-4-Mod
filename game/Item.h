@@ -68,6 +68,9 @@ public:
 	rvClientEntityPtr<rvClientEffect>	effectIdle;
 	bool					simpleItem;
 	bool					pickedUp;
+
+	int						price;
+
 	const idDeclSkin*		pickupSkin;
 	void					Event_DropToFloor	( void );
 protected:
