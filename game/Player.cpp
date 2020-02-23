@@ -17,6 +17,7 @@
 #include "ai/AAS_tactical.h"
 #include "Healing_Station.h"
 #include "ai/AI_Medic.h"
+#include "Item.h"
 
 // RAVEN BEGIN
 // nrausch: support for turning the weapon change ui on and off
@@ -1117,9 +1118,11 @@ idPlayer::idPlayer() {
 	showNewObjectives		= false;
 
 //CHERVE START
-	buyMenu = NULL;
+	selected				= false;
 
-	boughtCommand			= false;
+	buyMenu					= NULL;
+
+	boughtCommand			= true;
 	boughtBarracks			= false;
 	boughtDepot				= false;
 
@@ -1568,6 +1571,8 @@ void idPlayer::Init( void ) {
 	lightningNextTime		= 0;
 
 	modelName				= idStr();
+
+	GiveItem("item_comm");
 
 	// Remove any hearing loss that may be set up from the last map
 	soundSystem->FadeSoundClasses( SOUNDWORLD_GAME, 0, 0.0f, 0 );
@@ -2320,6 +2325,14 @@ void idPlayer::Save( idSaveGame *savefile ) const {
 	savefile->WriteAngles( predictionAnglesError );
 	savefile->WriteInt( predictionErrorTime );
 
+	savefile->WriteBool(boughtCommand);
+	savefile->WriteBool(boughtBarracks);
+	savefile->WriteBool(boughtDepot);
+
+	savefile->WriteBool(hasCommand);
+	savefile->WriteBool(hasBarracks);
+	savefile->WriteBool(hasDepot);
+
 //	savefile->WriteBool( ready );					// Don't save MP stuff
 // 	savefile->WriteBool( respawning );				// Don't save MP stuff
 // 	savefile->WriteBool( leader );					// Don't save MP stuff
@@ -2595,6 +2608,14 @@ void idPlayer::Restore( idRestoreGame *savefile ) {
 	savefile->ReadVec3( predictionOriginError );
 	savefile->ReadAngles( predictionAnglesError );
 	savefile->ReadInt( predictionErrorTime );
+
+	savefile->ReadBool(boughtCommand);
+	savefile->ReadBool(boughtBarracks);
+	savefile->ReadBool(boughtDepot);
+
+	savefile->ReadBool(hasCommand);
+	savefile->ReadBool(hasBarracks);
+	savefile->ReadBool(hasDepot);
 
 	assert( !ready );								// Don't save MP stuff
  	assert( !respawning );							// Don't save MP stuff
@@ -6233,6 +6254,7 @@ void idPlayer::Weapon_NPC( void ) {
 
 	if ( !focusEnt || focusEnt->health <= 0 ) {
 		ClearFocus ( );
+		selected = false;
 		return;
 	}
 
@@ -6243,9 +6265,16 @@ void idPlayer::Weapon_NPC( void ) {
 			if ( focusAI ) {
 				focusAI->TalkTo( this );
 				talkingNPC = focusAI;
+				selected = true;
+			}
+
+			//Displays class name of character selected in hud
+			if (selected){
+				hud->SetStateString("unit_name", focusAI->GetClassname());
 			}
 		}
 	} else if ( currentWeapon == SlotForWeapon ( "weapon_blaster" ) ) {
+		selected = false;
 		Weapon_Combat();
 	}
 }
@@ -8237,9 +8266,9 @@ int GetItemBuyImpulse( const char* itemName )
 		{ "weapon_napalmgun",				IMPULSE_109, },
 		//		{ "weapon_dmg",						IMPULSE_110, },
 		//									IMPULSE_111 - Unused
-		//									IMPULSE_112 - Unused
-		//									IMPULSE_113 - Unused
-		//									IMPULSE_114 - Unused
+		{ "item_comm",						IMPULSE_112, },
+		{ "item_barracks",					IMPULSE_113, },
+		{ "item_depot",						IMPULSE_114, },
 		//									IMPULSE_115 - Unused
 		//									IMPULSE_116 - Unused
 		//									IMPULSE_117 - Unused
@@ -8575,8 +8604,8 @@ bool idPlayer::CanBuy( void ) {
 
 
 void idPlayer::GenerateImpulseForBuyAttempt( const char* itemName ) {
-	if ( !CanBuy() )
-		return;
+//	if ( !CanBuy() )
+//		return;
 
 	int itemBuyImpulse = GetItemBuyImpulse( itemName );
 	PerformImpulse( itemBuyImpulse );
@@ -8728,7 +8757,7 @@ void idPlayer::PerformImpulse( int impulse ) {
 		}
 
 //CHERVE START
-		case IMPULSE_41:	
+		case IMPULSE_41:	break;
 		case IMPULSE_42:	break; // Unused
 		case IMPULSE_43:	break; // Unused
 		case IMPULSE_44:	break; // Unused
@@ -8752,10 +8781,10 @@ void idPlayer::PerformImpulse( int impulse ) {
 		case IMPULSE_108:	break; // Unused
 		case IMPULSE_109:	AttemptToBuyItem( "weapon_napalmgun" );				break;
 		case IMPULSE_110:	/* AttemptToBuyItem( "weapon_dmg" );*/				break;
-		case IMPULSE_111:	break; // Unused
-		case IMPULSE_112:	break; // Unused
-		case IMPULSE_113:	break; // Unused
-		case IMPULSE_114:	break; // Unused
+		case IMPULSE_111:	gameLocal.Printf("pressed q\n"); gameLocal.mpGame.Draw(4);  break; // Unused
+		case IMPULSE_112:	AttemptToBuyBuild("item_comm");						break; // Unused
+		case IMPULSE_113:	AttemptToBuyBuild("item_barracks");					break; // Unused
+		case IMPULSE_114:	AttemptToBuyBuild("item_depot");					break; // Unused
 		case IMPULSE_115:	break; // Unused
 		case IMPULSE_116:	break; // Unused
 		case IMPULSE_117:	break; // Unused
@@ -9352,9 +9381,9 @@ void idPlayer::UpdateHud( void ) {
  		hud->SetStateString( "hudLag", "0" );
  	}
 
-	if (IMPULSE_111){
-		hud->HandleNamedEvent("showbuild");
-	}
+/*	if (IMPULSE_111){
+		hud->HandleNamedEvent("showbuildMenu");
+	}*/
 }
 
 /*

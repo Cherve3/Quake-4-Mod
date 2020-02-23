@@ -316,6 +316,8 @@ public:
 	int						lastHitTime;			// last time projectile fired by player hit target
 	int						lastSavingThrowTime;	// for the "free miss" effect
 
+	bool					selected;				// check if a unit is selected
+
 	struct playerFlags_s {
 		bool		forward			:1;
 		bool		backward		:1;

@@ -9062,21 +9062,22 @@ int idMultiplayerGame::NumberOfAlivePlayersOnTeam( int team )
 idMultiplayerGame::OpenLocalBuyMenu
 ================
 */
-void idMultiplayerGame::OpenLocalBuyMenu( void )
+void idMultiplayerGame::OpenLocalBuyMenu( void)
 {
 	// Buy menu work in progress
-	if (gameLocal.gameType == GAME_SP && gameLocal.mpGame.GetCurrentMenu() == 1)
+	if (gameLocal.gameType == GAME_SP)
 	{
 		
 		gameLocal.Printf("BuyMenu open");
-			return;
+		gameLocal.sessionCommand = "game_startmenu";
+		//hud->HandleNamedEvent("showBuildMenu");
+		return;
 	}
 
-	if ( currentMenu == 4 )
-		return; // Already open
+//	if ( currentMenu == 4 )
+//		return; // Already open
 
-	gameLocal.sessionCommand = "game_startmenu";
-	gameLocal.mpGame.nextMenu = 4;
+	
 }
 
 /*	

@@ -648,7 +648,7 @@ public:
 // squirrel: Mode-agnostic buymenus
 	bool			isBuyingAllowedRightNow;
 
-	void			OpenLocalBuyMenu( void );
+	void			OpenLocalBuyMenu( void);
 	void			RedrawLocalBuyMenu( void );
 	void			GiveCashToTeam( int team, float cashAmount );
 	bool			IsBuyingAllowedInTheCurrentGameMode( void );
