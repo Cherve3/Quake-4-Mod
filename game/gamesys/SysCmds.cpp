@@ -458,6 +458,33 @@ void GiveStuffToPlayer( idPlayer* player, const char* name, const char* value )
 		}
 	}
 
+	if (give_all || idStr::Icmp(name, "item_comm") == 0){
+		player->boughtCommand = true;
+		player->hasCommand = true;
+
+
+	}
+
+	if (give_all || idStr::Icmp(name, "item_barracks") == 0){
+		player->boughtBarracks = true;
+		player->hasBarracks = true;
+
+
+	}
+
+	if (give_all || idStr::Icmp(name, "item_depot") == 0){
+		player->boughtDepot = true;
+		player->hasDepot= true;
+
+
+	}
+
+	if (give_all || idStr::Icmp(name, "resource") == 0){
+		//player->hud->SetStateInt("resource_amount", 99999);
+		player->inventory.resource_amount = 99999;
+		player->UpdateHud();
+	}
+
 	if ( give_all || idStr::Icmp( name, "ammo" ) == 0 ) {
 // RAVEN BEGIN
 // bdube: define changed
@@ -2924,7 +2951,7 @@ void Cmd_AddIcon_f( const idCmdArgs& args ) {
 // squirrel: Mode-agnostic buymenus
 void Cmd_ToggleBuyMenu_f( const idCmdArgs& args ) {
 	idPlayer* player = gameLocal.GetLocalPlayer();
-	if ( player && player->CanBuy() )
+	if ( player)
 	{
 		gameLocal.mpGame.OpenLocalBuyMenu();
 	}

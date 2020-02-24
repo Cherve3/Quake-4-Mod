@@ -9065,14 +9065,11 @@ idMultiplayerGame::OpenLocalBuyMenu
 void idMultiplayerGame::OpenLocalBuyMenu( void)
 {
 	// Buy menu work in progress
-	if (gameLocal.gameType == GAME_SP)
-	{
 		
 		gameLocal.Printf("BuyMenu open");
 		gameLocal.sessionCommand = "game_startmenu";
 		//hud->HandleNamedEvent("showBuildMenu");
 		return;
-	}
 
 //	if ( currentMenu == 4 )
 //		return; // Already open

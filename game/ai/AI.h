@@ -966,7 +966,7 @@ protected:
 	===============================================================================
 	*/
 	
-protected:
+public:
 
 	bool					StartMove						( aiMoveCommand_t command, const idVec3& goalOrigin, int goalArea, idEntity* goalEntity, aasFeature_t* feature, float range );
 	void					StopMove						( moveStatus_t status );

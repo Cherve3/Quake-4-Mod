@@ -491,6 +491,7 @@ idEntity::idEntity() {
 	renderView		= NULL;
 	cameraTarget	= NULL;
 	health			= 0;
+	selected		= false;
 
 	physics			= NULL;
 	bindMaster		= NULL;

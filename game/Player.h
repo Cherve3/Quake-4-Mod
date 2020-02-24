@@ -448,6 +448,7 @@ public:
 // RITUAL BEGIN
 // squirrel: Mode-agnostic buymenus
 	float					buyMenuCash;
+	int						buyMenuResource;
 // RITUAL END
 
 public:
@@ -821,6 +822,7 @@ public:
 	itemBuyStatus_t			ItemBuyStatus( const char* itemName );
 	buildBuyStatus_t		BuildBuyStatus( const char* buildingName);
 	bool					CanBuyItem( const char* itemName );
+	bool					CanBuyBuild(const char* buildName);
 	void					GiveCash( float cashDeltaAmount );
 	void					ClampCash( float minCash, float maxCash );
 	void					SetCash( float newCashAmount );
@@ -1094,6 +1096,7 @@ private:
 	void					ClearFocus					( void );
 	void					UpdateFocusCharacter		( idEntity* newEnt );
 	void					SetFocus					( playerFocus_t type, int focusTime, idEntity* ent, idUserInterface* ui );
+	void					commandNPC					(idAI* newEnt);
 
 	void					Event_GetButtons			( void );
 	void					Event_GetMove				( void );

@@ -17,6 +17,7 @@
 #include "ai/AAS_tactical.h"
 #include "Healing_Station.h"
 #include "ai/AI_Medic.h"
+#include "ai/AI_Move.h"
 #include "Item.h"
 
 // RAVEN BEGIN
@@ -6253,11 +6254,13 @@ void idPlayer::Weapon_NPC( void ) {
 	}
 
 	if ( !focusEnt || focusEnt->health <= 0 ) {
-		ClearFocus ( );
+		//ClearFocus ( );
+		focusEnt->selected = false;
 		selected = false;
+		hud->SetStateString("unit_name", "None");
+		gameLocal.Printf("Focus Cleared, focus false");
 		return;
 	}
-
 	if ( talkCursor && ( usercmd.buttons & BUTTON_ATTACK ) && !( oldButtons & BUTTON_ATTACK ) ) {
 		buttonMask |= BUTTON_ATTACK;
 		if ( !talkingNPC ) {
@@ -6265,15 +6268,17 @@ void idPlayer::Weapon_NPC( void ) {
 			if ( focusAI ) {
 				focusAI->TalkTo( this );
 				talkingNPC = focusAI;
+				focusAI->selected = true;
 				selected = true;
 			}
 
 			//Displays class name of character selected in hud
-			if (selected){
-				hud->SetStateString("unit_name", focusAI->GetClassname());
+			if (focusAI->selected){
+				hud->SetStateString("unit_name", cursor->GetStateString("npc"));
 			}
 		}
 	} else if ( currentWeapon == SlotForWeapon ( "weapon_blaster" ) ) {
+		focusEnt->selected = false;
 		selected = false;
 		Weapon_Combat();
 	}
@@ -6687,6 +6692,18 @@ Searches nearby locations
    	}
 }
 
+ /*
+ ================
+ idPlayer::ClearFocus
+ ================
+ */
+ void idPlayer::ClearFocus(void) {
+		 SetFocus(FOCUS_NONE, 0, NULL, NULL);
+		 hud->SetStateString("unit_name", "None");
+		 selected = false;
+
+ }
+
 /*
 ================
 idPlayer::UpdateFocus
@@ -6725,6 +6742,7 @@ void idPlayer::UpdateFocus( void ) {
 	}
 
 	// Focus has a limited time, make sure it hasnt expired
+	
 	if ( focusTime && gameLocal.time > focusTime ) {
 		ClearFocus ( );
 	}
@@ -7242,10 +7260,10 @@ void idPlayer::UpdateFocus( void ) {
 
 			// Any GUI that is too far away will just get bracket focus so the player can still shoot 
 			// but still see which guis are interractive
-			if ( focusLength > 300.0f ) {
+			if ( focusLength > 300.0f && selected == false) {
 				ClearFocus ( );
 				break;
-			} else if ( focusLength > 80.0f ) {
+			} else if ( focusLength > 80.0f && selected == false) {
 				ClearFocus ( );
 				focusType = FOCUS_BRACKETS;
 #ifdef _XENON
@@ -7301,8 +7319,8 @@ void idPlayer::UpdateFocus( void ) {
 			}
 
 			// clamp the mouse to the corner
-			const char*	command;
-			sysEvent_t	ev;
+//			const char*	command;
+//			sysEvent_t	ev;
 /* 			ev = sys->GenerateMouseMoveEvent( -2000, -2000 );
 			command = ui->HandleEvent( &ev, gameLocal.time );
   			HandleGuiCommands( ent, command );
@@ -7394,15 +7412,6 @@ void idPlayer::UpdateFocus( void ) {
  		cursor->SetStateInt( "talkcursor", talkCursor );
  	}
  
-}
-
-/*
-================
-idPlayer::ClearFocus
-================
-*/
-void idPlayer::ClearFocus ( void ) {
-	SetFocus ( FOCUS_NONE, 0, NULL, NULL );
 }
 
 void idPlayer::UpdateFocusCharacter( idEntity* newEnt ) {
@@ -7506,6 +7515,47 @@ void idPlayer::SetFocus ( playerFocus_t newType, int _focusTime, idEntity* newEn
 		focusTime = 0;
 	} else {
 		focusTime = gameLocal.time + _focusTime;
+	}
+}
+
+void idPlayer::commandNPC(idAI* newAI){
+
+	idVec3			view;
+	idVec3			focusAngles;
+	trace_t			trace;
+	idVec3			focusPoint;
+	idVec3			origin;
+	idAngles		angles;
+	idMat3			axis;
+	idVec3			endPnt;
+
+	angles = viewAngles;
+	GetViewPos(origin, axis);
+
+	gameLocal.TracePoint(this ,trace, origin, endPnt,MASK_SOLID, this);
+	endPnt = trace.endpos;
+
+	focusPoint = origin + angles.ToForward() * THIRD_PERSON_FOCUS_DISTANCE;
+	
+
+	if (newAI->selected){
+		StopFiring();
+		flagCanFire = false;
+	}
+
+	if (usercmd.buttons == BUTTON_ATTACK) {
+		
+		bool status = newAI->MoveTo(endPnt, 0);
+		if (status){
+			gameLocal.Printf("Moved.");
+		}
+		else{
+			gameLocal.Printf("Cant move to location.");
+		}
+	}
+	else if (usercmd.buttons & BUTTON_ZOOM){
+		flagCanFire = true;
+		newAI->selected = false;
 	}
 }
 
@@ -8266,10 +8316,10 @@ int GetItemBuyImpulse( const char* itemName )
 		{ "weapon_napalmgun",				IMPULSE_109, },
 		//		{ "weapon_dmg",						IMPULSE_110, },
 		//									IMPULSE_111 - Unused
-		{ "item_comm",						IMPULSE_112, },
-		{ "item_barracks",					IMPULSE_113, },
-		{ "item_depot",						IMPULSE_114, },
-		//									IMPULSE_115 - Unused
+		{ "buyMenu",						IMPULSE_112, },
+		{ "item_comm",						IMPULSE_113, },
+		{ "item_barracks",					IMPULSE_114, },
+		{ "item_depot",						IMPULSE_115, },
 		//									IMPULSE_116 - Unused
 		//									IMPULSE_117 - Unused
 		{ "item_armor_small",				IMPULSE_118, },
@@ -8301,6 +8351,12 @@ bool idPlayer::CanBuyItem( const char* itemName )
 {
 	itemBuyStatus_t buyStatus = ItemBuyStatus( itemName );
 	return( buyStatus == IBS_CAN_BUY );
+}
+
+bool idPlayer::CanBuyBuild(const char* buildName)
+{
+	buildBuyStatus_t status = BuildBuyStatus(buildName);
+	return(status == IBS_CAN_BUY);
 }
 
 
@@ -8390,10 +8446,12 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char* buildingName)
 	{
 		if (inventory.resource_amount < inventory.comm_center.price){
 			gameLocal.Printf("Not enough resources to buy command center.");
+			hud->SetStateString("text_alert", "Not enough resources to buy command center.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= inventory.comm_center.price){
 			gameLocal.Printf("Can buy the command center.");
+			hud->SetStateString("text_alert", "Can buy the command center.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8404,10 +8462,12 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char* buildingName)
 	{
 		if (inventory.resource_amount < inventory.barracks.price){
 			gameLocal.Printf("Not enough resources to buy barracks.");
+			hud->SetStateString("text_alert", "Not enough resources to buy barracks.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= inventory.barracks.price){
 			gameLocal.Printf("Can buy the barracks.");
+			hud->SetStateString("text_alert", "Can buy the barracks.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8418,10 +8478,12 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char* buildingName)
 	{
 		if (inventory.resource_amount < inventory.depot.price){
 			gameLocal.Printf("Not enough resource to buy depot.");
+			hud->SetStateString("text_alert", "Not enough resource to buy depot.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= inventory.depot.price){
 			gameLocal.Printf("Can buy the depot.");
+			hud->SetStateString("text_alert", "Can buy the depot.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8556,40 +8618,32 @@ bool idPlayer::AttemptToBuyItem( const char* itemName )
 	return true;
 }
 
-bool idPlayer::AttemptToBuyBuild(const char* itemName)
+bool idPlayer::AttemptToBuyBuild(const char* buildName)
 {
 	if (gameLocal.isClient) {
 		return false;
 	}
 
-	if (!itemName) {
+	if (!buildName) {
 		return false;
 	}
 
-	int itemCost = GetItemCost(itemName);
+	int buildCost = GetBuildCost(buildName);
 
 	/// Check if the player is allowed to buy this item
-	if (!CanBuyItem(itemName))
+	if (!CanBuyItem(buildName))
 	{
 		return false;
 	}
 
 	const char* playerName = GetUserInfo()->GetString("ui_name");
-	common->DPrintf("Player %s about to buy item %s; player has %d (%g) credits, cost is %d\n", playerName, itemName, (int)buyMenuCash, buyMenuCash, itemCost);
+	common->DPrintf("Player %s about to buy item %s; player has %d (%g) credits, cost is %d\n", playerName, buildName, buyMenuResource, buyMenuCash, buildCost);
 
-	buyMenuCash -= (float)itemCost;
+	buyMenuResource -= buildCost;
 
-	common->DPrintf("Player %s just bought item %s; player now has %d (%g) credits, cost was %d\n", playerName, itemName, (int)buyMenuCash, buyMenuCash, itemCost);
+	common->DPrintf("Player %s just bought item %s; player now has %d (%g) credits, cost was %d\n", playerName, buildName, buyMenuResource, buyMenuCash, buildCost);
 
-
-	// Team-based effects
-	idStr itemNameStr = itemName;
-
-	if (itemNameStr == "ammo_regen" || itemNameStr == "health_regen" || itemNameStr == "damage_boost") {
-		return AttemptToBuyTeamPowerup(itemName);
-	}
-
-	GiveStuffToPlayer(this, itemName, NULL);
+	GiveStuffToPlayer(this, buildName, NULL);
 	gameLocal.mpGame.RedrawLocalBuyMenu();
 	return true;
 }
@@ -8606,9 +8660,9 @@ bool idPlayer::CanBuy( void ) {
 void idPlayer::GenerateImpulseForBuyAttempt( const char* itemName ) {
 //	if ( !CanBuy() )
 //		return;
-
-	int itemBuyImpulse = GetItemBuyImpulse( itemName );
-	PerformImpulse( itemBuyImpulse );
+	int itemBuyImpulse = GetItemBuyImpulse(itemName);
+	gameLocal.Printf("impulse: d%", itemBuyImpulse);
+	PerformImpulse(itemBuyImpulse);
 }
 // RITUAL END
 
@@ -8757,7 +8811,7 @@ void idPlayer::PerformImpulse( int impulse ) {
 		}
 
 //CHERVE START
-		case IMPULSE_41:	break;
+		case IMPULSE_41: gameLocal.Printf("pressed q\n"); hud->HandleNamedEvent("showBuildMenu");	break;
 		case IMPULSE_42:	break; // Unused
 		case IMPULSE_43:	break; // Unused
 		case IMPULSE_44:	break; // Unused
@@ -8781,7 +8835,7 @@ void idPlayer::PerformImpulse( int impulse ) {
 		case IMPULSE_108:	break; // Unused
 		case IMPULSE_109:	AttemptToBuyItem( "weapon_napalmgun" );				break;
 		case IMPULSE_110:	/* AttemptToBuyItem( "weapon_dmg" );*/				break;
-		case IMPULSE_111:	gameLocal.Printf("pressed q\n"); gameLocal.mpGame.Draw(4);  break; // Unused
+		case IMPULSE_111:	gameLocal.Printf("pressed q\n"); hud->HandleNamedEvent("showBuildMenu");  break; // Unused
 		case IMPULSE_112:	AttemptToBuyBuild("item_comm");						break; // Unused
 		case IMPULSE_113:	AttemptToBuyBuild("item_barracks");					break; // Unused
 		case IMPULSE_114:	AttemptToBuyBuild("item_depot");					break; // Unused
@@ -13304,11 +13358,12 @@ void idPlayer::SetInitialHud ( void ) {
 	if ( !mphud || !gameLocal.isMultiplayer || gameLocal.GetLocalPlayer() != this ) {
 		return;
 	}
-
+	
 	mphud->SetStateInt( "gametype", gameLocal.gameType );
 
 	if( hud ) {
 		hud->SetStateInt( "gametype", gameLocal.gameType );
+		hud->SetStateString("unit_name", "None");
 	}
 
 	mphud->HandleNamedEvent( "InitHud" );
