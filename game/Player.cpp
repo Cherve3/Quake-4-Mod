@@ -1130,6 +1130,8 @@ idPlayer::idPlayer() {
 	hasCommand				= false;
 	hasBarracks				= false;
 	hasDepot				= false;
+
+	buyMenuOpen				= false;
 //CHERVE END
 #ifdef _XENON
 	g_ObjectiveSystemOpen	= false;
@@ -7538,7 +7540,7 @@ void idPlayer::commandNPC(idAI* newAI){
 	focusPoint = origin + angles.ToForward() * THIRD_PERSON_FOCUS_DISTANCE;
 	
 
-	if (newAI->selected){
+	if (newAI->selected == true){
 		StopFiring();
 		flagCanFire = false;
 	}
@@ -8618,12 +8620,31 @@ bool idPlayer::AttemptToBuyItem( const char* itemName )
 	return true;
 }
 
+void idPlayer::playerStore(int input){
+	if (input = 1){
+		gameLocal.Printf("Attempt to purchase command center"); 
+		AttemptToBuyBuild("item_comm");
+	}
+	else if (input = 2){
+		gameLocal.Printf("Attempt to purchase barracks");
+		AttemptToBuyBuild("item_barracks");
+	}
+	else if (input = 3){
+		gameLocal.Printf("Attempt to purchase depot");
+		AttemptToBuyBuild("item_depot");
+	}
+	else{
+		gameLocal.Printf("Not a valid item to purchase");
+	}
+}
+
 bool idPlayer::AttemptToBuyBuild(const char* buildName)
 {
 	if (gameLocal.isClient) {
 		return false;
 	}
-
+	gameLocal.Printf("Attempt to buy building.");
+	
 	if (!buildName) {
 		return false;
 	}
@@ -8631,18 +8652,18 @@ bool idPlayer::AttemptToBuyBuild(const char* buildName)
 	int buildCost = GetBuildCost(buildName);
 
 	/// Check if the player is allowed to buy this item
-	if (!CanBuyItem(buildName))
+	if (!CanBuyBuild(buildName))
 	{
 		return false;
 	}
-
+	gameLocal.Printf("Can buy building.");
 	const char* playerName = GetUserInfo()->GetString("ui_name");
 	common->DPrintf("Player %s about to buy item %s; player has %d (%g) credits, cost is %d\n", playerName, buildName, buyMenuResource, buyMenuCash, buildCost);
 
 	buyMenuResource -= buildCost;
 
 	common->DPrintf("Player %s just bought item %s; player now has %d (%g) credits, cost was %d\n", playerName, buildName, buyMenuResource, buyMenuCash, buildCost);
-
+	gameLocal.Printf("Bought building.");
 	GiveStuffToPlayer(this, buildName, NULL);
 	gameLocal.mpGame.RedrawLocalBuyMenu();
 	return true;
@@ -9562,7 +9583,21 @@ void idPlayer::Think( void ) {
 		return;
 	}
 // CHERVE START
-
+	if (buyMenuOpen == true){
+		if (common->KeysFromBinding("machinegun")){
+			playerStore(1);
+		}
+		else if (common->KeysFromBinding("shotgun")){
+			playerStore(2);
+		}
+		else if (common->KeysFromBinding("engineer")){
+			playerStore(3);
+		}
+		else{
+			hud->SetStateString("viewcomments", "That is not a valid item to buy.");
+		}
+	}
+		
 //CHERVE END
 #ifdef _XENON
 	// change the crosshair if it's modified
@@ -13361,10 +13396,10 @@ void idPlayer::SetInitialHud ( void ) {
 	
 	mphud->SetStateInt( "gametype", gameLocal.gameType );
 
-	if( hud ) {
+//	if( hud ) {
 		hud->SetStateInt( "gametype", gameLocal.gameType );
 		hud->SetStateString("unit_name", "None");
-	}
+//	}
 
 	mphud->HandleNamedEvent( "InitHud" );
 	mphud->HandleNamedEvent( "TeamChange" );

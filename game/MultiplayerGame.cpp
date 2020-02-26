@@ -3504,9 +3504,9 @@ void idMultiplayerGame::SetupBuyMenuItems()
 	buyMenu->SetStateInt( "buyStatus_special1", player->ItemBuyStatus( "health_regen" ) );
 	buyMenu->SetStateInt( "buyStatus_special2", player->ItemBuyStatus( "damage_boost" ) );
 
-	buyMenu->SetStateInt("buyStatus_comm", player->ItemBuyStatus("comm_center") );
-	buyMenu->SetStateInt("buyStatus_barracks", player->ItemBuyStatus("barracks"));
-	buyMenu->SetStateInt("buyStatus_depot", player->ItemBuyStatus("depot"));
+	buyMenu->SetStateInt("buyStatus_comm", player->BuildBuyStatus("comm_center") );
+	buyMenu->SetStateInt("buyStatus_barracks", player->BuildBuyStatus("barracks"));
+	buyMenu->SetStateInt("buyStatus_depot", player->BuildBuyStatus("depot"));
 
 	buyMenu->SetStateInt( "playerTeam", player->team );
 
@@ -9065,16 +9065,21 @@ idMultiplayerGame::OpenLocalBuyMenu
 void idMultiplayerGame::OpenLocalBuyMenu( void)
 {
 	// Buy menu work in progress
+	gameLocal.sessionCommand = "game_startmenu";
 		
-		gameLocal.Printf("BuyMenu open");
-		gameLocal.sessionCommand = "game_startmenu";
-		//hud->HandleNamedEvent("showBuildMenu");
-		return;
-
-//	if ( currentMenu == 4 )
-//		return; // Already open
-
-	
+	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true) {
+		gameLocal.Printf("BuyMenu closed\n");
+		gameLocal.GetLocalPlayer()->buyMenuOpen = false;
+		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "Buy menu closed.");
+		gameLocal.GetLocalPlayer()->hud->HandleNamedEvent("hideBuildMenu");
+	}
+	else{
+		gameLocal.Printf("BuyMenu open\n");
+		gameLocal.GetLocalPlayer()->buyMenuOpen = true;
+		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "Buy menu open.");
+		gameLocal.GetLocalPlayer()->hud->HandleNamedEvent("showBuildMenu");
+	}
+	return;
 }
 
 /*	
@@ -9127,7 +9132,6 @@ bool idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode( void ) {
 	}
 	else{
 		gameLocal.Printf("Buying is not allowed\n");
-		return false;
 	}
 
 	if ( gameLocal.gameType != GAME_TOURNEY ) {

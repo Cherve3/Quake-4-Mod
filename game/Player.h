@@ -362,7 +362,7 @@ public:
 	bool					objectiveButtonReleased;
 	bool					disableHud;
 	bool					showNewObjectives;
-
+//CHERVE START
 	bool					boughtCommand;		//Checks if player bought command center
 	bool					boughtBarracks;		//Checks if player bought barracks
 	bool					boughtDepot;		//Checks if player bought vehicle depot
@@ -371,6 +371,8 @@ public:
 	bool					hasBarracks;		//Checks if player built barracks
 	bool					hasDepot;			//Checks if player built vehicle depot
 
+	bool					buyMenuOpen;
+//CHERVE END
 	int						lastDmgTime;
 	int						deathClearContentsTime;
  	bool					doingDeathSkin;
@@ -648,6 +650,7 @@ public:
 //CHERVE START
 	bool					AttemptToBuyBuild(const char* buildingName);
 	int						GetBuildCost(const char* buildingName);
+	void					playerStore(int input);
 //CHERVE END
 
 // RITUAL END
