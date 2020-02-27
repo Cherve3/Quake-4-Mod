@@ -195,6 +195,7 @@ typedef enum {
 	B_CAN_BUY = 0,
 	B_NOT_ALLOWED = 1,
 	B_CANNOT_AFFORD = 2,
+	B_OWNED = 3,
 } buildBuyStatus_t;
 //CHERVE END
 
@@ -650,7 +651,8 @@ public:
 //CHERVE START
 	bool					AttemptToBuyBuild(const char* buildingName);
 	int						GetBuildCost(const char* buildingName);
-	void					playerStore(int input);
+	void					playerStore(int select);
+	void					commandNPC(const char* unit);
 //CHERVE END
 
 // RITUAL END
@@ -834,6 +836,7 @@ public:
 
 protected:
 	void					SetupHead( const char* modelKeyName = "", idVec3 headOffset = idVec3(0, 0, 0) );
+
 
 private:
 	float					vehicleCameraDist;
@@ -1099,7 +1102,6 @@ private:
 	void					ClearFocus					( void );
 	void					UpdateFocusCharacter		( idEntity* newEnt );
 	void					SetFocus					( playerFocus_t type, int focusTime, idEntity* ent, idUserInterface* ui );
-	void					commandNPC					(idAI* newEnt);
 
 	void					Event_GetButtons			( void );
 	void					Event_GetMove				( void );

@@ -2350,7 +2350,7 @@ void idMultiplayerGame::ClientStartPackedVote( int clientNum, const voteStruct_t
 		bool kickActive = false;
 		bool maxWindows = false;
 		idStr yesKey = common->KeysFromBinding("_impulse28");
-
+		
 		mainGui->SetStateInt( "vote_going", 1 );
 
 		//dynamic vote yes/no box
@@ -3503,10 +3503,6 @@ void idMultiplayerGame::SetupBuyMenuItems()
 	buyMenu->SetStateInt( "buyStatus_special0", player->ItemBuyStatus( "ammo_regen" ) );
 	buyMenu->SetStateInt( "buyStatus_special1", player->ItemBuyStatus( "health_regen" ) );
 	buyMenu->SetStateInt( "buyStatus_special2", player->ItemBuyStatus( "damage_boost" ) );
-
-	buyMenu->SetStateInt("buyStatus_comm", player->BuildBuyStatus("comm_center") );
-	buyMenu->SetStateInt("buyStatus_barracks", player->BuildBuyStatus("barracks"));
-	buyMenu->SetStateInt("buyStatus_depot", player->BuildBuyStatus("depot"));
 
 	buyMenu->SetStateInt( "playerTeam", player->team );
 
@@ -9069,8 +9065,9 @@ void idMultiplayerGame::OpenLocalBuyMenu( void)
 		
 	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true) {
 		gameLocal.Printf("BuyMenu closed\n");
+		
 		gameLocal.GetLocalPlayer()->buyMenuOpen = false;
-		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "Buy menu closed.");
+		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "Buy_menu_closed.");
 		gameLocal.GetLocalPlayer()->hud->HandleNamedEvent("hideBuildMenu");
 	}
 	else{
@@ -9132,6 +9129,7 @@ bool idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode( void ) {
 	}
 	else{
 		gameLocal.Printf("Buying is not allowed\n");
+		
 	}
 
 	if ( gameLocal.gameType != GAME_TOURNEY ) {

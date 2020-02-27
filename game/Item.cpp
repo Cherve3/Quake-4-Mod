@@ -70,7 +70,7 @@ idItem::idItem() {
 	effectIdle = NULL;
 	simpleItem = false;
 	pickedUp = false;
-	price = 0;
+	price = 99999;
 }
 
 /*
