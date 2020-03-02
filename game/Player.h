@@ -217,9 +217,6 @@ public:
 	int						powerupEndTime[ POWERUP_MAX ];
 	int						weaponMods[ MAX_WEAPONS ];
 	int						resource_amount;					//current amount of resources
-	idItem					comm_center;
-	idItem					barracks;
-	idItem					depot;
 
  	// multiplayer
  	int						ammoPredictTime;

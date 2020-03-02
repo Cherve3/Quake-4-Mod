@@ -1121,8 +1121,6 @@ idPlayer::idPlayer() {
 //CHERVE START
 	selected				= false;
 
-	buyMenu					= NULL;
-
 	boughtCommand			= false;
 	boughtBarracks			= false;
 	boughtDepot				= false;
@@ -8336,10 +8334,10 @@ int GetItemBuyImpulse( const char* itemName )
 		{ "weapon_napalmgun",				IMPULSE_109, },
 		//		{ "weapon_dmg",						IMPULSE_110, },
 		//									IMPULSE_111 - Unused
-		{ "buyMenu",						IMPULSE_112, },
-		{ "item_comm",						IMPULSE_113, },
-		{ "item_barracks",					IMPULSE_114, },
-		{ "item_depot",						IMPULSE_115, },
+		//									IMPULSE_112 - Unused
+		//									IMPULSE_113 - Unused
+		//									IMPULSE_114 - Unused
+		//									IMPULSE_115 - Unused
 		//									IMPULSE_116 - Unused
 		//									IMPULSE_117 - Unused
 		{ "item_armor_small",				IMPULSE_118, },
@@ -8454,19 +8452,21 @@ itemBuyStatus_t idPlayer::ItemBuyStatus( const char* itemName )
 	return IBS_CAN_BUY;
 }
 //CHERVE START
-buildBuyStatus_t idPlayer::BuildBuyStatus(const char* buildingName)
+buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 {
 	
 	gameLocal.Printf("building Name: %s.\n", buildingName);
-	
-	if (buildingName == "notimplemented")
-	{
-		return B_NOT_ALLOWED;
-	}
-	else if (buildingName == "item_comm")
+	idStr command, barracks, depot;
+	command = "item_comm";
+	barracks = "item_barracks";
+	depot = "item_depot";
+
+	gameLocal.Printf("Compare: %d\n", command.Cmp(buildingName));
+
+	if (command.Cmp(buildingName) == 0)
 	{
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_comm", false, false));
-		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
+		gameLocal.Printf("resource amount: %d, price: %d\n", inventory.resource_amount, itemDef->dict.GetInt("price"));
 
 		if (boughtCommand == true){
 			gameLocal.Printf("Already bought the command center.\n");
@@ -8488,7 +8488,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char* buildingName)
 			return B_NOT_ALLOWED;
 		}
 	}
-	else if (buildingName == "item_barracks")
+	else if (barracks.Cmp(buildingName) == 0)
 	{
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_barracks", false, false));
 		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
@@ -8511,7 +8511,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char* buildingName)
 			return B_NOT_ALLOWED;
 		}
 	}
-	else if (buildingName == "item_depot")
+	else if (depot.Cmp(buildingName) == 0)
 	{
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_depot", false, false));
 		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
@@ -8683,6 +8683,12 @@ void idPlayer::playerStore(int select){
 
 bool idPlayer::AttemptToBuyBuild(const char* buildName)
 {
+
+	idStr command, barracks, depot;
+	command = "item_comm";
+	barracks = "item_barracks";
+	depot = "item_depot";
+
 	if (gameLocal.isClient) {
 		return false;
 	}
@@ -8702,8 +8708,22 @@ bool idPlayer::AttemptToBuyBuild(const char* buildName)
 	this->inventory.resource_amount = (inventory.resource_amount -= buildCost);
 	hud->SetStateInt("resource_amount", inventory.resource_amount);
 
-	gameLocal.Printf("Bought %s.", buildName);
+	gameLocal.Printf("Bought %s.\n", buildName);
 	GiveStuffToPlayer(this, buildName, "");
+	
+	//sets bought Bool to true for building
+	if (command.Cmp(buildName) == 0){
+		this->boughtCommand = true;
+		gameLocal.Printf("boughtCommand = %d.\n", this->boughtCommand);
+	}
+	if (barracks.Cmp(buildName) == 0){
+		this->boughtBarracks = true;
+		gameLocal.Printf("boughtBarracks = %d.\n", this->boughtBarracks);
+	}
+	if (depot.Cmp(buildName) == 0){
+		this->boughtBarracks = true;
+		gameLocal.Printf("boughtDepot = %d.\n", this->boughtDepot);
+	}
 
 	this->UpdateHudStats(hud);
 	return true;
@@ -8896,10 +8916,10 @@ void idPlayer::PerformImpulse( int impulse ) {
 		case IMPULSE_108:	break; // Unused
 		case IMPULSE_109:	AttemptToBuyItem( "weapon_napalmgun" );				break;
 		case IMPULSE_110:	/* AttemptToBuyItem( "weapon_dmg" );*/				break;
-		case IMPULSE_111:	gameLocal.Printf("pressed q\n"); hud->HandleNamedEvent("showBuildMenu");  break; // Unused
-		case IMPULSE_112:	AttemptToBuyBuild("item_comm");						break; // Unused
-		case IMPULSE_113:	AttemptToBuyBuild("item_barracks");					break; // Unused
-		case IMPULSE_114:	AttemptToBuyBuild("item_depot");					break; // Unused
+		case IMPULSE_111:	break; // Unused
+		case IMPULSE_112:	break; // Unused
+		case IMPULSE_113:	break; // Unused
+		case IMPULSE_114:	break; // Unused
 		case IMPULSE_115:	break; // Unused
 		case IMPULSE_116:	break; // Unused
 		case IMPULSE_117:	break; // Unused

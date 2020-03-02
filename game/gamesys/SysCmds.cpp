@@ -407,7 +407,6 @@ void GiveStuffToPlayer( idPlayer* player, const char* name, const char* value )
 {
 	int			i;
 	bool		give_all;
-//	idPlayer* player = gameLocal.GetLocalPlayer();
 
 	if( !player || !name )	{
 		return;
@@ -458,31 +457,27 @@ void GiveStuffToPlayer( idPlayer* player, const char* name, const char* value )
 		}
 	}
 
-	if (give_all || idStr::Icmp(name, "item_comm") == 0){
-		player->boughtCommand = true;
-		player->hasCommand = true;
-
-
-	}
-
-	if (give_all || idStr::Icmp(name, "item_barracks") == 0){
-		player->boughtBarracks = true;
-		player->hasBarracks = true;
-
+	if (give_all || idStr::Icmp(name, "command_center") == 0){
+		player->GiveItem("item_comm");
+		return;
 
 	}
 
-	if (give_all || idStr::Icmp(name, "item_depot") == 0){
-		player->boughtDepot = true;
-		player->hasDepot= true;
+	if (give_all || idStr::Icmp(name, "barracks") == 0){
+		player->GiveItem("item_barracks");
+		return;
 
+	}
 
+	if (give_all || idStr::Icmp(name, "depot") == 0){
+		player->GiveItem("item_depot");
+		return;
 	}
 
 	if (give_all || idStr::Icmp(name, "resource") == 0){
-		//player->hud->SetStateInt("resource_amount", 99999);
 		player->inventory.resource_amount = 99999;
 		player->UpdateHud();
+		return;
 	}
 
 	if ( give_all || idStr::Icmp( name, "ammo" ) == 0 ) {
@@ -2966,6 +2961,76 @@ void Cmd_BuyItem_f( const idCmdArgs& args ) {
 
 	player->GenerateImpulseForBuyAttempt( args.Argv(1) );
 }
+
+void Cmd_UnitSelectMachineGun_f(const idCmdArgs& args){
+	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
+		gameLocal.GetLocalPlayer()->playerStore(1);
+	}
+	else{
+		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(1));
+	}
+}
+
+void Cmd_UnitSelectShotgun_f(const idCmdArgs& args){
+	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
+		gameLocal.GetLocalPlayer()->playerStore(2);
+	}
+	else{
+		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(2));
+	}
+}
+
+void Cmd_UnitSelectMedic_f(const idCmdArgs& args){
+	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
+		gameLocal.GetLocalPlayer()->playerStore(3);
+	}
+	else{
+		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(3));
+	}
+}
+
+void Cmd_UnitSelectEngineer_f(const idCmdArgs& args){
+	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
+		gameLocal.GetLocalPlayer()->playerStore(4);
+	}
+	else{
+		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(4));
+	}
+}
+
+void Cmd_dropBuilding_f(const idCmdArgs& args){
+
+	idPlayer *player = gameLocal.GetLocalPlayer();
+	idItem Item;
+	idVec3 velocity;
+	idDict dict;
+	const char *iname;
+	char *item = "item_comm";
+	velocity.x = 10;
+	velocity.y = 10;
+	velocity.z = 5;
+
+	for (int j = 0; j < player->inventory.items.Num(); j++) {
+		idDict *item = player->inventory.items[j];
+		iname = item->GetString("item_comm", "n/a");
+		gameLocal.Printf("String: %s.\n", iname);
+		iname = common->GetLocalizedString(iname);
+	}
+
+	if (strcmp(iname, "item_comm") && player->boughtCommand == true && player->hasCommand == false){
+		gameLocal.Printf("Player dropped %s. iname: %s.\n", item, iname);
+		player->DropItem("item_comm", dict, velocity);
+		player->hasCommand = true;
+	}
+	else if (player->hasCommand == true){
+		player->hud->SetStateString("viewcomments", "You already placed your command center.");
+	}
+	else{
+		gameLocal.Printf("The item %s does not exist. iname: %s.\n", item, iname);
+		player->hud->SetStateString("viewcomments", "That item does not exist");
+	}
+}
+
 // RITUAL END
 
 void Cmd_PlayerEmote_f( const idCmdArgs& args ) {
@@ -3258,7 +3323,13 @@ void idGameLocal::InitConsoleCommands( void ) {
 // squirrel: Mode-agnostic buymenus
 	cmdSystem->AddCommand( "buyMenu",				Cmd_ToggleBuyMenu_f,		CMD_FL_GAME,				"Toggle buy menu (if in a buy zone and the game type supports it)" );
 	cmdSystem->AddCommand( "buy",					Cmd_BuyItem_f,				CMD_FL_GAME,				"Buy an item (if in a buy zone and the game type supports it)" );
-// RITUAL END
+	cmdSystem->AddCommand("machinegun",				Cmd_UnitSelectMachineGun_f, CMD_FL_GAME,				"Selects all the units with a machine gun. If buy menu is open purchases command center.");
+	cmdSystem->AddCommand("shotgun",				Cmd_UnitSelectShotgun_f,	CMD_FL_GAME,				"Selects all the units with a machine gun. If buy menu is open purchases barracks.");
+	cmdSystem->AddCommand("medic",					Cmd_UnitSelectMedic_f,		CMD_FL_GAME,				"Selects all the medical units. If buy menu is open purchases vehicle depot.");
+	cmdSystem->AddCommand("engineer",				Cmd_UnitSelectEngineer_f,	CMD_FL_GAME,				"Selects all the engineer units");
+	cmdSystem->AddCommand("dropItem",				Cmd_dropBuilding_f,			CMD_FL_GAME,				"Drops a building on to the map");
+	
+	// RITUAL END
 
 }
 
