@@ -2964,70 +2964,58 @@ void Cmd_BuyItem_f( const idCmdArgs& args ) {
 
 void Cmd_UnitSelectMachineGun_f(const idCmdArgs& args){
 	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->playerStore(1);
+		gameLocal.GetLocalPlayer()->PlayerStore(1);
+	}
+	else if (gameLocal.GetLocalPlayer()->droppingItem == true){
+		gameLocal.GetLocalPlayer()->DropBuilding(1);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(1));
+		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(1));
 	}
 }
 
 void Cmd_UnitSelectShotgun_f(const idCmdArgs& args){
 	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->playerStore(2);
+		gameLocal.GetLocalPlayer()->PlayerStore(2);
+	}
+	else if (gameLocal.GetLocalPlayer()->droppingItem == true){
+		gameLocal.GetLocalPlayer()->DropBuilding(2);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(2));
+		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(2));
 	}
 }
 
 void Cmd_UnitSelectMedic_f(const idCmdArgs& args){
 	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->playerStore(3);
+		gameLocal.GetLocalPlayer()->PlayerStore(3);
+	}
+	else if (gameLocal.GetLocalPlayer()->droppingItem == true){
+		gameLocal.GetLocalPlayer()->DropBuilding(3);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(3));
+		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(3));
 	}
 }
 
 void Cmd_UnitSelectEngineer_f(const idCmdArgs& args){
 	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->playerStore(4);
+		gameLocal.GetLocalPlayer()->PlayerStore(4);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->commandNPC(args.Argv(4));
+		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(4));
 	}
 }
 
 void Cmd_dropBuilding_f(const idCmdArgs& args){
-
-	idPlayer *player = gameLocal.GetLocalPlayer();
-	idItem Item;
-	idVec3 velocity;
-	idDict dict;
-	const char *iname;
-	char *item = "item_comm";
-	velocity.x = 10;
-	velocity.y = 10;
-	velocity.z = 5;
-
-	for (int j = 0; j < player->inventory.items.Num(); j++) {
-		idDict *item = player->inventory.items[j];
-		iname = item->GetString("item_comm", "n/a");
-		gameLocal.Printf("String: %s.\n", iname);
-		iname = common->GetLocalizedString(iname);
-	}
-
-	if (strcmp(iname, "item_comm") && player->boughtCommand == true && player->hasCommand == false){
-		gameLocal.Printf("Player dropped %s. iname: %s.\n", item, iname);
-		player->DropItem("item_comm", dict, velocity);
-		player->hasCommand = true;
-	}
-	else if (player->hasCommand == true){
-		player->hud->SetStateString("viewcomments", "You already placed your command center.");
+	
+	if (gameLocal.GetLocalPlayer()->droppingItem == false){
+		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "What building do you want to drop?");
+		gameLocal.GetLocalPlayer()->droppingItem = true;
 	}
 	else{
-		gameLocal.Printf("The item %s does not exist. iname: %s.\n", item, iname);
-		player->hud->SetStateString("viewcomments", "That item does not exist");
+		gameLocal.GetLocalPlayer()->droppingItem = false;
+		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "");
 	}
 }
 

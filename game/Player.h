@@ -369,7 +369,8 @@ public:
 	bool					hasBarracks;		//Checks if player built barracks
 	bool					hasDepot;			//Checks if player built vehicle depot
 
-	bool					buyMenuOpen;
+	bool					buyMenuOpen;		//Checks if Buymenu is open
+	bool					droppingItem;		//Checks if player wants to drop an item
 //CHERVE END
 	int						lastDmgTime;
 	int						deathClearContentsTime;
@@ -552,9 +553,9 @@ public:
 	void					GiveItem( const char *name );
 	
 	// Inventory
-	bool					GiveInventoryItem( idDict *item );
+	bool					GiveInventoryItem(const idDict item );
 	void					RemoveInventoryItem( idDict *item );
-	bool					GiveInventoryItem( const char *name );
+//	bool					GiveInventoryItem( const char *name );
 	void					RemoveInventoryItem( const char *name );
 	idDict *				FindInventoryItem( const char *name );
 
@@ -645,11 +646,14 @@ public:
 	bool					CanBuy( void );
 	int						CanSelectWeapon				( const char* weaponName );
 	int						GetItemCost(const char* itemName);
+
 //CHERVE START
-	bool					AttemptToBuyBuild(const char* buildingName);
-	int						GetBuildCost(const char* buildingName);
-	void					playerStore(int select);
-	void					commandNPC(const char* unit);
+	bool					AttemptToBuyBuild(const char *buildingName);
+	int						GetBuildCost(const char *buildingName);
+	void					PlayerStore(int select);
+	void					CommandNPC(const char *unit);
+	void					DropBuilding(int select);
+	void					UnitSpawn(const char *unitName);
 //CHERVE END
 
 // RITUAL END

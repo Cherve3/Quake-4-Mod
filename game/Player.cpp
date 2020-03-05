@@ -1130,6 +1130,7 @@ idPlayer::idPlayer() {
 	hasDepot				= false;
 
 	buyMenuOpen				= false;
+	droppingItem			= false;
 //CHERVE END
 #ifdef _XENON
 	g_ObjectiveSystemOpen	= false;
@@ -5213,7 +5214,7 @@ void idPlayer::GiveWeaponMod ( const char* weaponmod ) {
 idPlayer::GiveInventoryItem
 ===============
 */
-bool idPlayer::GiveInventoryItem( idDict *item ) {
+bool idPlayer::GiveInventoryItem(const idDict item ) {
 	if ( gameLocal.isMultiplayer && spectating ) {
 		return false;
 	}
@@ -5222,19 +5223,19 @@ bool idPlayer::GiveInventoryItem( idDict *item ) {
 // mwhitlock: Dynamic memory consolidation
 	RV_PUSH_HEAP_MEM(this);
 // RAVEN END
-	inventory.items.Append( new idDict( *item ) );
+	inventory.items.Append( new idDict( item ) );
 // RAVEN BEGIN
 // mwhitlock: Dynamic memory consolidation
 	RV_POP_HEAP();
 // RAVEN END
-
+/*
 	if ( hud ) {
 		const char *itemName = common->GetLocalizedString( item->GetString( "inv_name" ) );
 		hud->SetStateString ( "itemtext", itemName );
 		hud->SetStateString ( "itemicon", item->GetString( "inv_icon" ) );
 		hud->HandleNamedEvent ( "itemPickup" );
 	}
-	
+*/	
 	return true;
 }
 
@@ -7518,7 +7519,7 @@ void idPlayer::SetFocus ( playerFocus_t newType, int _focusTime, idEntity* newEn
 	}
 }
 
-void idPlayer::commandNPC(const char* unit){
+void idPlayer::CommandNPC(const char* unit){
 
 	idVec3			view;
 	idVec3			focusAngles;
@@ -8280,30 +8281,48 @@ int idPlayer::GetItemCost( const char* itemName ) {
 	}
 	return itemCosts->dict.GetInt( itemName, "99999" );
 }
-
+/*
+==============
+GetBuildCost
+==============
+*/
 int idPlayer::GetBuildCost(const char* buildingName) {
-	if (strcmp(buildingName, "command_center")){
+	idStr command, barracks, depot, miner;
+	command = "item_comm";
+	barracks = "item_barracks";
+	depot = "item_depot";
+	miner = "unit_miner";
+
+	if (command.Cmp(buildingName) == 0){
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_comm", false, false));
 		itemDef->dict.GetInt("price");
 
 		gameLocal.Printf("The price of the command center is %d", itemDef->dict.GetInt("price"));
 		return itemDef->dict.GetInt("price");
 	}
-	else if (strcmp(buildingName, "barracks")){
+	else if (barracks.Cmp(buildingName) == 0){
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_barracks", false, false));
 		itemDef->dict.GetInt("price");
 
 		gameLocal.Printf("The price of the barracks is %d", itemDef->dict.GetInt("price"));
 		return itemDef->dict.GetInt("price");
 	}
-	else if (strcmp(buildingName, "depot")){
+	else if (depot.Cmp(buildingName) == 0){
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_depot", false, false));
 		itemDef->dict.GetInt("price");
 
 		gameLocal.Printf("The price of the depot is %d", itemDef->dict.GetInt("price"));
 		return itemDef->dict.GetInt("price");
 	}
+	else if (miner.Cmp(buildingName) == 0){
+		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
+		itemDef->dict.GetInt("price");
+
+		gameLocal.Printf("The price for a miner is %d", itemDef->dict.GetInt("price"));
+		return itemDef->dict.GetInt("price");
+	}
 	else{
+		gameLocal.Printf("The price is over %d", 99999);
 		return 99999;
 	}
 }
@@ -8456,12 +8475,11 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 {
 	
 	gameLocal.Printf("building Name: %s.\n", buildingName);
-	idStr command, barracks, depot;
+	idStr command, barracks, depot, miner;
 	command = "item_comm";
 	barracks = "item_barracks";
 	depot = "item_depot";
-
-	gameLocal.Printf("Compare: %d\n", command.Cmp(buildingName));
+	miner = "unit_miner";
 
 	if (command.Cmp(buildingName) == 0)
 	{
@@ -8516,7 +8534,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_depot", false, false));
 		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
 
-		if (hasCommand == false && hasBarracks == false){
+		if (hasBarracks == false){
 			gameLocal.Printf("The command center and barracks need to exist to buy the depot.\n");
 			hud->SetStateString("text_alert", "The command center and barracks need to exist to buy the depot.");
 			return B_NOT_ALLOWED;
@@ -8529,6 +8547,27 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Can buy the depot.\n");
 			hud->SetStateString("text_alert", "Can buy the depot.");
+			return B_CAN_BUY;
+		}
+	}
+	else if (miner.Cmp(buildingName) == 0)
+	{
+		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
+		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
+
+		if (hasCommand == false){
+			gameLocal.Printf("The command center needs to exist to buy a miner.\n");
+			hud->SetStateString("text_alert", "The command center need to exist to buy a miner.");
+			return B_NOT_ALLOWED;
+		}
+		if (inventory.resource_amount < itemDef->dict.GetInt("price")){
+			gameLocal.Printf("Not enough resource to buy miner.\n");
+			hud->SetStateString("text_alert", "Not enough resource to buy miner.");
+			return B_CANNOT_AFFORD;
+		}
+		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
+			gameLocal.Printf("Can buy a miner.\n");
+			hud->SetStateString("text_alert", "Can buy a miner.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8656,27 +8695,30 @@ bool idPlayer::AttemptToBuyItem( const char* itemName )
 	return true;
 }
 
-void idPlayer::playerStore(int select){
-
-	gameLocal.Printf("button: %d .\n", select);
+void idPlayer::PlayerStore(int select){
 
 	if (select == 1){
 		gameLocal.Printf("Attempt to purchase command center\n");
-		hud->SetStateString("viewcomments", "Attempt to purchase command center.");
+		hud->SetStateString("viewcomments", "Purchasing command center...");
 		AttemptToBuyBuild("item_comm");
 	}
 	else if (select == 2){
 		gameLocal.Printf("Attempt to purchase barracks\n");
-		hud->SetStateString("viewcomments", "Attempt to purchase barracks.");
+		hud->SetStateString("viewcomments", "Purchasing barracks...");
 		AttemptToBuyBuild("item_barracks");
 	}
 	else if (select == 3){
 		gameLocal.Printf("Attempt to purchase depot\n");
-		hud->SetStateString("viewcomments", "Attempt to purchase depot.");
+		hud->SetStateString("viewcomments", "Purchasing depot...");
 		AttemptToBuyBuild("item_depot");
 	}
+	else if (select == 4){
+		gameLocal.Printf("Attempt to purchase miner\n");
+		hud->SetStateString("viewcomments", "Purchasing miner...");
+		AttemptToBuyBuild("unit_miner");
+	}
 	else{
-		hud->SetStateString("viewcomments", "That is not a valid item to buy.");
+		hud->SetStateString("viewcomments", "That is not a valid building to buy.");
 	}
 
 }
@@ -8684,10 +8726,13 @@ void idPlayer::playerStore(int select){
 bool idPlayer::AttemptToBuyBuild(const char* buildName)
 {
 
-	idStr command, barracks, depot;
+	idStr command, barracks, depot, miner, name;
 	command = "item_comm";
 	barracks = "item_barracks";
 	depot = "item_depot";
+	miner = "unit_miner";
+	name = buildName;
+
 
 	if (gameLocal.isClient) {
 		return false;
@@ -8704,12 +8749,21 @@ bool idPlayer::AttemptToBuyBuild(const char* buildName)
 	gameLocal.Printf("Can buy building.\n");
 
 	//Update resource amount
-	
-	this->inventory.resource_amount = (inventory.resource_amount -= buildCost);
+	this->inventory.resource_amount = (inventory.resource_amount - buildCost);
 	hud->SetStateInt("resource_amount", inventory.resource_amount);
-
-	gameLocal.Printf("Bought %s.\n", buildName);
-	GiveStuffToPlayer(this, buildName, "");
+	
+	
+	
+	if (name.CmpPrefix("item_") == 0){
+		gameLocal.Printf("Bought building: %s.\n", buildName);
+		GiveInventoryItem(gameLocal.FindEntityDef(buildName)->dict);
+	}
+	else if (name.CmpPrefix("unit_") == 0){
+		gameLocal.Printf("Bought unit :%s.\n", buildName);
+		UnitSpawn(buildName);
+	}
+	
+	//GiveStuffToPlayer(this, buildName, "");
 	
 	//sets bought Bool to true for building
 	if (command.Cmp(buildName) == 0){
@@ -8721,7 +8775,7 @@ bool idPlayer::AttemptToBuyBuild(const char* buildName)
 		gameLocal.Printf("boughtBarracks = %d.\n", this->boughtBarracks);
 	}
 	if (depot.Cmp(buildName) == 0){
-		this->boughtBarracks = true;
+		this->boughtDepot = true;
 		gameLocal.Printf("boughtDepot = %d.\n", this->boughtDepot);
 	}
 
@@ -8737,6 +8791,92 @@ bool idPlayer::CanBuy( void ) {
 	return !spectating;
 }
 
+void idPlayer::DropBuilding(int select){
+
+	idVec3 velocity;
+	idDict dict = *FindInventoryItem("command");
+	idStr item = "item_comm";
+	velocity.x = 10;
+	velocity.y = 10;
+	velocity.z = 5;
+	if (select == 1){
+		
+		if (FindInventoryItem("command") != NULL && this->boughtCommand == true && this->hasCommand == false){
+			this->hud->SetStateString("viewcomments", "You placed a command center.");
+			this->DropItem("idEntity", dict, velocity);
+			
+			this->hasCommand = true;
+		}
+		else if (this->hasCommand == true){
+			this->hud->SetStateString("viewcomments", "You already placed a command center.");
+		}
+		else{
+			gameLocal.Printf("The command center does not exist.\n");
+			this->hud->SetStateString("viewcomments", "You do not have a command center.");
+			gameLocal.Printf("Item to drop: %s", FindInventoryItem("command")->GetString("inv_name"));
+		}
+	}
+	else if (select == 2){
+
+		if (FindInventoryItem("barracks") != NULL && this->boughtBarracks == true && this->hasBarracks == false){
+			this->hud->SetStateString("viewcomments", "You placed a barracks.");
+			this->DropItem("item_barracks", dict, velocity);
+			this->hasBarracks = true;
+		}
+		else if (this->hasBarracks == true){
+			this->hud->SetStateString("viewcomments", "You already placed a barracks.");
+		}
+		else{
+			gameLocal.Printf("The barracks does not exist.\n");
+			this->hud->SetStateString("viewcomments", "You do not have a barracks.");
+		}
+	}
+	else if(select == 3){
+
+		if (FindInventoryItem("depot") != NULL && this->boughtDepot == true && this->hasDepot == false){
+			this->hud->SetStateString("viewcomments", "You placed a depot.");
+			this->DropItem("item_depot", dict, velocity);
+			this->hasBarracks = true;
+		}
+		else if (this->hasDepot == true){
+			this->hud->SetStateString("viewcomments", "You already placed a depot.");
+		}
+		else{
+			gameLocal.Printf("The depot does not exist.\n");
+			this->hud->SetStateString("viewcomments", "You do not have a depot.");
+		}
+	}
+	else{
+		this->hud->SetStateString("viewcomments", "Can't drop an item.");
+	}
+}
+
+void idPlayer::UnitSpawn(const char *unitName){
+	idEntity *ent = NULL;
+	float yaw;
+	idVec3 org;
+	idPlayer	*player;
+	idDict		dict;
+
+	player = gameLocal.GetLocalPlayer();
+
+	dict.Set("classname", unitName);
+	const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
+	dict = entDef->dict;
+	yaw = player->viewAngles.yaw;
+	dict.Set("angle", va("%f", yaw + 180));
+	org = this->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 80 + idVec3(0, 0, 1);
+	dict.Set("origin", org.ToString());
+	//	gameLocal.SpawnEntityDef(*args, &ent);
+	/*	ent.spawnArgs = *args;
+	ent.Spawn();
+	*///ent->spawnArgs = dict;
+	gameLocal.SpawnEntityDef(dict, &ent);
+	gameLocal.Printf("Attempt spawn");
+	if (ent)	{
+		gameLocal.Printf("spawned entity '%s'\n", ent->name.c_str());
+	}
+}
 
 void idPlayer::GenerateImpulseForBuyAttempt( const char* itemName ) {
 //	if ( !CanBuy() )
@@ -8746,7 +8886,6 @@ void idPlayer::GenerateImpulseForBuyAttempt( const char* itemName ) {
 	PerformImpulse(itemBuyImpulse);
 }
 // RITUAL END
-
 
 /*
 ==============
@@ -8890,18 +9029,6 @@ void idPlayer::PerformImpulse( int impulse ) {
 			idFuncRadioChatter::RepeatLast();
 			break;
 		}
-
-//CHERVE START
-		case IMPULSE_41: gameLocal.Printf("pressed q\n"); hud->HandleNamedEvent("showBuildMenu");	break;
-		case IMPULSE_42:	break; // Unused
-		case IMPULSE_43:	break; // Unused
-		case IMPULSE_44:	break; // Unused
-		case IMPULSE_45:	break; // Unused
-		case IMPULSE_46:	break; // Unused
-		case IMPULSE_47:	break; // Unused
-		case IMPULSE_48:	break; // Unused
-		case IMPULSE_49:	break; // Unused
-//CHERVE END
 
 // RITUAL BEGIN
 // squirrel: Mode-agnostic buymenus

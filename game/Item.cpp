@@ -590,7 +590,7 @@ bool idItem::GiveToPlayer( idPlayer *player ) {
 	}
 
 	if ( spawnArgs.GetBool( "inv_carry" ) ) {
-		return player->GiveInventoryItem( &spawnArgs );
+		return player->GiveInventoryItem( spawnArgs );
 	} 
 	
 	// Handle the special ammo pickup that gives ammo for the weapon the player currently has
@@ -598,7 +598,7 @@ bool idItem::GiveToPlayer( idPlayer *player ) {
 		const char *ammoName = player->weapon->GetAmmoNameForIndex(player->weapon->GetAmmoType());
 		if ( player->weapon->TotalAmmoCount() != player->weapon->maxAmmo && player->weapon->AmmoRequired() ) {
 			player->GiveItem(ammoName);
-			player->GiveInventoryItem( &spawnArgs );
+			player->GiveInventoryItem( spawnArgs );
 			return true;
 		}
 		return false;
