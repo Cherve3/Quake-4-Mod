@@ -371,6 +371,8 @@ public:
 
 	bool					buyMenuOpen;		//Checks if Buymenu is open
 	bool					droppingItem;		//Checks if player wants to drop an item
+
+	int						spawnCount;			// Number of units spawned.
 //CHERVE END
 	int						lastDmgTime;
 	int						deathClearContentsTime;

@@ -4815,7 +4815,7 @@ bool idGameLocal::SpawnEntityDef( const idDict &args, idEntity **ent, bool setDe
 	if ( ent ) {
 		*ent = NULL;
 	}
-
+	gameLocal.Printf("Spawning: ");
 	spawnArgs = args;
 
 	if ( spawnArgs.GetBool( "nospawn" ) )

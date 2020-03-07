@@ -8287,38 +8287,46 @@ GetBuildCost
 ==============
 */
 int idPlayer::GetBuildCost(const char* buildingName) {
-	idStr command, barracks, depot, miner;
+	idStr command, barracks, depot, miner, name;
 	command = "item_comm";
 	barracks = "item_barracks";
 	depot = "item_depot";
 	miner = "unit_miner";
+	name = buildingName;
 
-	if (command.Cmp(buildingName) == 0){
+	if (name.Cmp("item_comm") == 0){
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_comm", false, false));
 		itemDef->dict.GetInt("price");
 
 		gameLocal.Printf("The price of the command center is %d", itemDef->dict.GetInt("price"));
 		return itemDef->dict.GetInt("price");
 	}
-	else if (barracks.Cmp(buildingName) == 0){
+	else if (name.Cmp("item_barracks") == 0){
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_barracks", false, false));
 		itemDef->dict.GetInt("price");
 
 		gameLocal.Printf("The price of the barracks is %d", itemDef->dict.GetInt("price"));
 		return itemDef->dict.GetInt("price");
 	}
-	else if (depot.Cmp(buildingName) == 0){
+	else if (name.Cmp("item_depot") == 0){
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_depot", false, false));
 		itemDef->dict.GetInt("price");
 
 		gameLocal.Printf("The price of the depot is %d", itemDef->dict.GetInt("price"));
 		return itemDef->dict.GetInt("price");
 	}
-	else if (miner.Cmp(buildingName) == 0){
+	else if (name.Cmp("unit_miner") == 0){
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
 		itemDef->dict.GetInt("price");
 
 		gameLocal.Printf("The price for a miner is %d", itemDef->dict.GetInt("price"));
+		return itemDef->dict.GetInt("price");
+	}
+	else if (name.Cmp("unit_soldier") == 0){
+		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "char_marine_combat", false, false));
+		itemDef->dict.GetInt("price");
+
+		gameLocal.Printf("The price for a soldier is %d", itemDef->dict.GetInt("price"));
 		return itemDef->dict.GetInt("price");
 	}
 	else{
@@ -8475,13 +8483,10 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 {
 	
 	gameLocal.Printf("building Name: %s.\n", buildingName);
-	idStr command, barracks, depot, miner;
-	command = "item_comm";
-	barracks = "item_barracks";
-	depot = "item_depot";
-	miner = "unit_miner";
+	idStr name = buildingName;
 
-	if (command.Cmp(buildingName) == 0)
+
+	if (name.Cmp("item_comm") == 0)
 	{
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_comm", false, false));
 		gameLocal.Printf("resource amount: %d, price: %d\n", inventory.resource_amount, itemDef->dict.GetInt("price"));
@@ -8506,7 +8511,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 			return B_NOT_ALLOWED;
 		}
 	}
-	else if (barracks.Cmp(buildingName) == 0)
+	else if (name.Cmp("item_barracks") == 0)
 	{
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_barracks", false, false));
 		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
@@ -8529,7 +8534,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 			return B_NOT_ALLOWED;
 		}
 	}
-	else if (depot.Cmp(buildingName) == 0)
+	else if (name.Cmp("item_depot") == 0)
 	{
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "item_depot", false, false));
 		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
@@ -8539,7 +8544,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 			hud->SetStateString("text_alert", "The command center and barracks need to exist to buy the depot.");
 			return B_NOT_ALLOWED;
 		}
-		if (inventory.resource_amount < itemDef->dict.GetInt("price")){
+		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Not enough resource to buy depot.\n");
 			hud->SetStateString("text_alert", "Not enough resource to buy depot.");
 			return B_CANNOT_AFFORD;
@@ -8550,7 +8555,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 			return B_CAN_BUY;
 		}
 	}
-	else if (miner.Cmp(buildingName) == 0)
+	else if (name.Cmp("unit_miner") == 0)
 	{
 		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
 		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
@@ -8560,7 +8565,7 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 			hud->SetStateString("text_alert", "The command center need to exist to buy a miner.");
 			return B_NOT_ALLOWED;
 		}
-		if (inventory.resource_amount < itemDef->dict.GetInt("price")){
+		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Not enough resource to buy miner.\n");
 			hud->SetStateString("text_alert", "Not enough resource to buy miner.");
 			return B_CANNOT_AFFORD;
@@ -8568,6 +8573,30 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Can buy a miner.\n");
 			hud->SetStateString("text_alert", "Can buy a miner.");
+			return B_CAN_BUY;
+		}
+		else{
+			return B_NOT_ALLOWED;
+		}
+	}
+	else if (name.Cmp("unit_soldier") == 0)
+	{
+		const idDeclEntityDef *itemDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "char_marine_combat", false, false));
+		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
+
+		if (hasBarracks == false){
+			gameLocal.Printf("The barracks needs to exist to buy a soldier.\n");
+			hud->SetStateString("text_alert", "The barracks need to exist to buy a soldier.");
+			return B_NOT_ALLOWED;
+		}
+		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
+			gameLocal.Printf("Not enough resource to buy soldier.\n");
+			hud->SetStateString("text_alert", "Not enough resource to buy soldier.");
+			return B_CANNOT_AFFORD;
+		}
+		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
+			gameLocal.Printf("Can buy a soldier.\n");
+			hud->SetStateString("text_alert", "Can buy a soldier.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8717,6 +8746,11 @@ void idPlayer::PlayerStore(int select){
 		hud->SetStateString("viewcomments", "Purchasing miner...");
 		AttemptToBuyBuild("unit_miner");
 	}
+	else if (select == 5){
+		gameLocal.Printf("Attempt to purchase soldier\n");
+		hud->SetStateString("viewcomments", "Purchasing soldier...");
+		AttemptToBuyBuild("unit_soldier");
+	}
 	else{
 		hud->SetStateString("viewcomments", "That is not a valid building to buy.");
 	}
@@ -8746,7 +8780,6 @@ bool idPlayer::AttemptToBuyBuild(const char* buildName)
 	{
 		return false;
 	}
-	gameLocal.Printf("Can buy building.\n");
 
 	//Update resource amount
 	this->inventory.resource_amount = (inventory.resource_amount - buildCost);
@@ -8756,10 +8789,12 @@ bool idPlayer::AttemptToBuyBuild(const char* buildName)
 	
 	if (name.CmpPrefix("item_") == 0){
 		gameLocal.Printf("Bought building: %s.\n", buildName);
+		hud->SetStateString("viewcomments","Bought building.");
 		GiveInventoryItem(gameLocal.FindEntityDef(buildName)->dict);
 	}
 	else if (name.CmpPrefix("unit_") == 0){
 		gameLocal.Printf("Bought unit :%s.\n", buildName);
+		hud->SetStateString("viewcomments", "Bought unit.");
 		UnitSpawn(buildName);
 	}
 	
@@ -8793,17 +8828,21 @@ bool idPlayer::CanBuy( void ) {
 
 void idPlayer::DropBuilding(int select){
 
-	idVec3 velocity;
+	idVec3 org;
 	idDict dict = *FindInventoryItem("command");
 	idStr item = "item_comm";
-	velocity.x = 10;
-	velocity.y = 10;
-	velocity.z = 5;
+	float yaw;
+
+	yaw = this->viewAngles.yaw;
+	dict.Set("angle", va("%f", yaw + 180));
+
+	org = this->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 80 + idVec3(0, 0, 1);
+	dict.Set("origin", org.ToString());
 	if (select == 1){
 		
 		if (FindInventoryItem("command") != NULL && this->boughtCommand == true && this->hasCommand == false){
 			this->hud->SetStateString("viewcomments", "You placed a command center.");
-			this->DropItem("idEntity", dict, velocity);
+			this->DropItem("idEntity", dict, org);
 			
 			this->hasCommand = true;
 		}
@@ -8820,7 +8859,7 @@ void idPlayer::DropBuilding(int select){
 
 		if (FindInventoryItem("barracks") != NULL && this->boughtBarracks == true && this->hasBarracks == false){
 			this->hud->SetStateString("viewcomments", "You placed a barracks.");
-			this->DropItem("item_barracks", dict, velocity);
+			this->DropItem("item_barracks", dict, org);
 			this->hasBarracks = true;
 		}
 		else if (this->hasBarracks == true){
@@ -8835,8 +8874,9 @@ void idPlayer::DropBuilding(int select){
 
 		if (FindInventoryItem("depot") != NULL && this->boughtDepot == true && this->hasDepot == false){
 			this->hud->SetStateString("viewcomments", "You placed a depot.");
-			this->DropItem("item_depot", dict, velocity);
+			this->DropItem("item_depot", dict, org);
 			this->hasBarracks = true;
+			this->droppingItem = false;
 		}
 		else if (this->hasDepot == true){
 			this->hud->SetStateString("viewcomments", "You already placed a depot.");
@@ -8853,27 +8893,37 @@ void idPlayer::DropBuilding(int select){
 
 void idPlayer::UnitSpawn(const char *unitName){
 	idEntity *ent = NULL;
+	idPlayer *player;
 	float yaw;
 	idVec3 org;
-	idPlayer	*player;
 	idDict		dict;
+	idStr miner, soldier;
 
+	miner = "unit_miner";
+	soldier = "unit_soldier";
 	player = gameLocal.GetLocalPlayer();
-
+	
 	dict.Set("classname", unitName);
-	const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
-	dict = entDef->dict;
+	if (miner.Cmp(unitName) == 0){
+		const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
+		dict = entDef->dict;
+	}
+	else if (soldier.Cmp(unitName) == 0){
+		const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "char_marine", false, false));
+		dict = entDef->dict;
+	}
+
+	//Set spawn location in front of player
 	yaw = player->viewAngles.yaw;
 	dict.Set("angle", va("%f", yaw + 180));
-	org = this->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 80 + idVec3(0, 0, 1);
+
+	org = player->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 80 + idVec3(0, 0, 5);
 	dict.Set("origin", org.ToString());
-	//	gameLocal.SpawnEntityDef(*args, &ent);
-	/*	ent.spawnArgs = *args;
-	ent.Spawn();
-	*///ent->spawnArgs = dict;
+	spawnCount += 1;
+	dict.Set("npc_name", "");
 	gameLocal.SpawnEntityDef(dict, &ent);
-	gameLocal.Printf("Attempt spawn");
-	if (ent)	{
+	
+	if (ent){
 		gameLocal.Printf("spawned entity '%s'\n", ent->name.c_str());
 	}
 }

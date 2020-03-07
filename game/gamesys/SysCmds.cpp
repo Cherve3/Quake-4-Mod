@@ -3007,6 +3007,15 @@ void Cmd_UnitSelectEngineer_f(const idCmdArgs& args){
 	}
 }
 
+void Cmd_UnitSelectVehicle_f(const idCmdArgs& args){
+	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
+		gameLocal.GetLocalPlayer()->PlayerStore(5);
+	}
+	else{
+		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(5));
+	}
+}
+
 void Cmd_dropBuilding_f(const idCmdArgs& args){
 	
 	if (gameLocal.GetLocalPlayer()->droppingItem == false){
@@ -3315,6 +3324,7 @@ void idGameLocal::InitConsoleCommands( void ) {
 	cmdSystem->AddCommand("shotgun",				Cmd_UnitSelectShotgun_f,	CMD_FL_GAME,				"Selects all the units with a machine gun. If buy menu is open purchases barracks.");
 	cmdSystem->AddCommand("medic",					Cmd_UnitSelectMedic_f,		CMD_FL_GAME,				"Selects all the medical units. If buy menu is open purchases vehicle depot.");
 	cmdSystem->AddCommand("engineer",				Cmd_UnitSelectEngineer_f,	CMD_FL_GAME,				"Selects all the engineer units");
+	cmdSystem->AddCommand("vehicle",				Cmd_UnitSelectVehicle_f,	CMD_FL_GAME,				"Selects all the vehicle units");
 	cmdSystem->AddCommand("dropItem",				Cmd_dropBuilding_f,			CMD_FL_GAME,				"Drops a building on to the map");
 	
 	// RITUAL END
