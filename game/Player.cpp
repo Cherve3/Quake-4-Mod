@@ -19,6 +19,7 @@
 #include "ai/AI_Medic.h"
 #include "ai/AI_Move.h"
 #include "Item.h"
+#include "ai/AAS.h"
 
 // RAVEN BEGIN
 // nrausch: support for turning the weapon change ui on and off
@@ -5873,10 +5874,17 @@ idPlayer::DropItem
 idEntity* idPlayer::DropItem ( const char* itemClass, const idDict& customArgs, const idVec3& velocity ) const {
 	idDict		args;
 	idEntity*	ent;
+	idPlayer *player = gameLocal.GetLocalPlayer();
+
+	float yaw = player->viewAngles.yaw;
+	idVec3 org = player->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 40 + idVec3(0, 0, 1);
+	float angle = yaw + 180;
+	
 	args.Set( "classname", itemClass );
-	args.Set( "origin", GetPhysics()->GetAbsBounds().GetCenter().ToString ( ) );
+	args.Set("origin", org.ToString());
 	args.Set( "dropped", "1" );
-	args.SetFloat ( "angle", 360.0f * gameLocal.random.RandomFloat ( ) );
+	args.SetFloat("angle", angle);
+	args.SetBool("canPickUp", 0);
 	args.Copy ( customArgs );
 	gameLocal.SpawnEntityDef ( args, &ent );
 	if ( !ent ) {
@@ -7521,6 +7529,7 @@ void idPlayer::SetFocus ( playerFocus_t newType, int _focusTime, idEntity* newEn
 
 void idPlayer::CommandNPC(const char* unit){
 
+	idEntity		*ent = NULL;
 	idVec3			view;
 	idVec3			focusAngles;
 	trace_t			trace;
@@ -7529,19 +7538,38 @@ void idPlayer::CommandNPC(const char* unit){
 	idAngles		angles;
 	idMat3			axis;
 	idVec3			endPnt;
-
-	angles = viewAngles;
-	GetViewPos(origin, axis);
-
-	gameLocal.TracePoint(this ,trace, origin, endPnt,MASK_SOLID, this);
-	endPnt = trace.endpos;
-
-	focusPoint = origin + angles.ToForward() * THIRD_PERSON_FOCUS_DISTANCE;
 	
-/*	if (newAI->selected == true){
-		StopFiring();
-		flagCanFire = false;
+	idPlayer *player = gameLocal.GetLocalPlayer();
+	
+	angles = viewAngles;
+	origin = firstPersonViewOrigin;
+	contactType_t type = trace.c.type;
+	endPnt = trace.endpos;
+	contactInfo_t contact = trace.c;
+	int entnum = focusEnt.GetEntityNum();
+	
+	gameLocal.Printf("endpoint: %s.\n", endPnt.ToString());
+	focusPoint = origin + angles.ToForward() * THIRD_PERSON_FOCUS_DISTANCE;
+
+	gameLocal.Printf("unit: %s.\nEntnum: %d.\n", unit, entnum);
+	ent = focusEnt.GetEntity();
+	if (ent != NULL){
+		const char* name = ent->name.c_str();
+		gameLocal.Printf("entity: %s.\n", name);
+		gameLocal.Printf("classname: %s.\n", ent->GetClassname());
+		if (ent->GetClassname() == "item_resource"){
+			inventory.resource_amount += 100;
+		}
+		else if (ent->GetClassname() == "miner"){
+			gameLocal.Printf("its a miner!\n");
+			ent->FindTargets();
+			ent->Damage(ent, ent, origin, name,100,0);
+		}
+		else if (ent->GetClassname() == "item_comm"){
+			gameLocal.Printf("its a command center!\n");
+		}
 	}
+/*
 
 	if (usercmd.buttons == BUTTON_ATTACK) {
 		
@@ -8828,23 +8856,20 @@ bool idPlayer::CanBuy( void ) {
 
 void idPlayer::DropBuilding(int select){
 
-	idVec3 org;
-	idDict dict = *FindInventoryItem("command");
-	idStr item = "item_comm";
+	idDict dict;
 	float yaw;
 
 	yaw = this->viewAngles.yaw;
-	dict.Set("angle", va("%f", yaw + 180));
+	
 
-	org = this->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 80 + idVec3(0, 0, 1);
-	dict.Set("origin", org.ToString());
+	
 	if (select == 1){
-		
+		 dict = *FindInventoryItem("command");
 		if (FindInventoryItem("command") != NULL && this->boughtCommand == true && this->hasCommand == false){
 			this->hud->SetStateString("viewcomments", "You placed a command center.");
-			this->DropItem("idEntity", dict, org);
-			
+			this->DropItem("item_comm", dict);
 			this->hasCommand = true;
+			this->droppingItem = false;
 		}
 		else if (this->hasCommand == true){
 			this->hud->SetStateString("viewcomments", "You already placed a command center.");
@@ -8856,11 +8881,12 @@ void idPlayer::DropBuilding(int select){
 		}
 	}
 	else if (select == 2){
-
+		dict = *FindInventoryItem("barracks");
 		if (FindInventoryItem("barracks") != NULL && this->boughtBarracks == true && this->hasBarracks == false){
 			this->hud->SetStateString("viewcomments", "You placed a barracks.");
-			this->DropItem("item_barracks", dict, org);
+			this->DropItem("item_barracks", dict);
 			this->hasBarracks = true;
+			this->droppingItem = false;
 		}
 		else if (this->hasBarracks == true){
 			this->hud->SetStateString("viewcomments", "You already placed a barracks.");
@@ -8871,10 +8897,10 @@ void idPlayer::DropBuilding(int select){
 		}
 	}
 	else if(select == 3){
-
+		dict = *FindInventoryItem("depot");
 		if (FindInventoryItem("depot") != NULL && this->boughtDepot == true && this->hasDepot == false){
 			this->hud->SetStateString("viewcomments", "You placed a depot.");
-			this->DropItem("item_depot", dict, org);
+			this->DropItem("item_depot", dict);
 			this->hasBarracks = true;
 			this->droppingItem = false;
 		}
@@ -8916,7 +8942,7 @@ void idPlayer::UnitSpawn(const char *unitName){
 	//Set spawn location in front of player
 	yaw = player->viewAngles.yaw;
 	dict.Set("angle", va("%f", yaw + 180));
-
+//	dict.Set("","");
 	org = player->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 80 + idVec3(0, 0, 5);
 	dict.Set("origin", org.ToString());
 	spawnCount += 1;

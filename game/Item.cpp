@@ -466,7 +466,7 @@ void idItem::Spawn( void ) {
 	pulse = false;
 	orgOrigin = GetPhysics()->GetOrigin();
 
-	canPickUp = !( spawnArgs.GetBool( "triggerFirst" ) || spawnArgs.GetBool( "no_touch" ) );
+	canPickUp = false; // !(spawnArgs.GetBool("triggerFirst") || spawnArgs.GetBool("no_touch"));
 
 	inViewTime = -1000;
 	lastCycle = -1;

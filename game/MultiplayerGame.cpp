@@ -9067,7 +9067,7 @@ void idMultiplayerGame::OpenLocalBuyMenu( void)
 		gameLocal.Printf("BuyMenu closed\n");
 		
 		gameLocal.GetLocalPlayer()->buyMenuOpen = false;
-		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "Buy_menu_closed.");
+		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "Buy menu closed.");
 		gameLocal.GetLocalPlayer()->hud->HandleNamedEvent("hideBuildMenu");
 	}
 	else{
@@ -9124,7 +9124,7 @@ idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode
 */
 bool idMultiplayerGame::IsBuyingAllowedInTheCurrentGameMode( void ) {
 	if (!gameLocal.isMultiplayer && gameLocal.gameType == GAME_SP) {
-		gameLocal.Printf("Buying is allowed\n");
+		
 		return true;
 	}
 	else{
