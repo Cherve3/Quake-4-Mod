@@ -457,23 +457,6 @@ void GiveStuffToPlayer( idPlayer* player, const char* name, const char* value )
 		}
 	}
 
-	if (give_all || idStr::Icmp(name, "command_center") == 0){
-		player->GiveItem("item_comm");
-		return;
-
-	}
-
-	if (give_all || idStr::Icmp(name, "barracks") == 0){
-		player->GiveItem("item_barracks");
-		return;
-
-	}
-
-	if (give_all || idStr::Icmp(name, "depot") == 0){
-		player->GiveItem("item_depot");
-		return;
-	}
-
 	if (give_all || idStr::Icmp(name, "resource") == 0){
 		player->inventory.resource_amount = 99999;
 		player->UpdateHud();

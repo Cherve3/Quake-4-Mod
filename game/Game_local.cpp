@@ -7187,7 +7187,7 @@ idEntity* idGameLocal::SelectSpawnPoint( idPlayer* player ) {
 
 	if ( weightedSpawns.Num() == 0 ) {
 		// no spawns avaialable, spawn randomly
-		common->DPrintf("no spawns avaialable, spawn randomly\n");
+		common->DPrintf("no spawns available, spawn randomly\n");
 		return (*spawnArray)[ random.RandomInt( spawnArray->Num() ) ];
 	}
 

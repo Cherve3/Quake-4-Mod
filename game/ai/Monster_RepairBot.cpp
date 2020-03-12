@@ -35,6 +35,11 @@ public:
 	void					Restore				( idRestoreGame *savefile );
 
 	virtual void			Think				( void );
+	void					Mine				( repairBotArm_t& arm );
+	int						resource = 0;
+	int						resMax = 500;
+
+	bool					selected = false;
 
 	virtual void			GetDebugInfo		( debugInfoProc_t proc, void* userData );
 
@@ -146,6 +151,27 @@ void rvMonsterRepairBot::Think ( void ) {
 	// Update repair effects? (dont worry about stopping them, the state ending will do so)
 	UpdateRepairs ( armLeft );
 	UpdateRepairs ( armRight );
+	Mine(armLeft);
+	Mine(armRight);
+}
+
+void rvMonsterRepairBot::Mine(repairBotArm_t& arm){
+	idEntity *ent = gameLocal.FindEntity("item_resource");
+	
+	idVec3 origin;
+
+	if (arm.joint == INVALID_JOINT) {
+		return;
+	}
+
+
+
+	int numEntities = gameLocal.EntitiesWithinRadius(origin, 50, &ent, 50);
+
+	if (numEntities > 0){
+		gameLocal.Printf("Number of entities in radius: %d", numEntities);
+		Attack("repair",arm.joint,ent, origin);
+	};
 }
 
 /*

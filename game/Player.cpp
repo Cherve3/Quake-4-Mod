@@ -1132,6 +1132,9 @@ idPlayer::idPlayer() {
 
 	buyMenuOpen				= false;
 	droppingItem			= false;
+
+	minerCount				= 0;
+	soldierCount			= 0;
 //CHERVE END
 #ifdef _XENON
 	g_ObjectiveSystemOpen	= false;
@@ -1574,8 +1577,6 @@ void idPlayer::Init( void ) {
 	lightningNextTime		= 0;
 
 	modelName				= idStr();
-
-	GiveItem("item_comm");
 
 	// Remove any hearing loss that may be set up from the last map
 	soundSystem->FadeSoundClasses( SOUNDWORLD_GAME, 0, 0.0f, 0 );
@@ -6277,13 +6278,20 @@ void idPlayer::Weapon_NPC( void ) {
 			if ( focusAI ) {
 				focusAI->TalkTo( this );
 				talkingNPC = focusAI;
+
+				
 				focusAI->selected = true;
 				selected = true;
 			}
 
 			//Displays class name of character selected in hud
 			if (focusAI->selected){
+				idStr comment;
+
 				hud->SetStateString("unit_name", cursor->GetStateString("npc"));
+
+				sprintf(comment, "You selected %s.", focusAI->GetName());
+				hud->SetStateString("viewcomments", comment);
 			}
 		}
 	} else if ( currentWeapon == SlotForWeapon ( "weapon_blaster" ) ) {
@@ -7539,34 +7547,50 @@ void idPlayer::CommandNPC(const char* unit){
 	idMat3			axis;
 	idVec3			endPnt;
 	
-	idPlayer *player = gameLocal.GetLocalPlayer();
-	
+	ent = focusEnt.GetEntity();
 	angles = viewAngles;
 	origin = firstPersonViewOrigin;
-	contactType_t type = trace.c.type;
 	endPnt = trace.endpos;
-	contactInfo_t contact = trace.c;
-	int entnum = focusEnt.GetEntityNum();
+	int entnum = ent->entityDefNumber;
 	
 	gameLocal.Printf("endpoint: %s.\n", endPnt.ToString());
 	focusPoint = origin + angles.ToForward() * THIRD_PERSON_FOCUS_DISTANCE;
 
 	gameLocal.Printf("unit: %s.\nEntnum: %d.\n", unit, entnum);
-	ent = focusEnt.GetEntity();
+
+	
+
 	if (ent != NULL){
+		if (ent = this){
+			return;
+		}
 		const char* name = ent->name.c_str();
-		gameLocal.Printf("entity: %s.\n", name);
-		gameLocal.Printf("classname: %s.\n", ent->GetClassname());
-		if (ent->GetClassname() == "item_resource"){
+		gameLocal.Printf("DefName: %s.\n", ent->GetEntityDefName());
+		gameLocal.Printf("Classname: %s.\n", ent->GetClassname());
+		idStr defName = ent->GetEntityDefName();
+
+		if (defName.Cmp("resource") == 0){
+			gameLocal.Printf("its a resource!\n");
 			inventory.resource_amount += 100;
 		}
-		else if (ent->GetClassname() == "miner"){
+		else if (defName.Cmp("miner") == 0){
 			gameLocal.Printf("its a miner!\n");
 			ent->FindTargets();
 			ent->Damage(ent, ent, origin, name,100,0);
 		}
-		else if (ent->GetClassname() == "item_comm"){
+		else if (defName.Cmp("item_comm") == 0){
 			gameLocal.Printf("its a command center!\n");
+			this->health += 10;
+		}
+	}
+
+	if (ent != NULL && ent->selected == true){
+		if (usercmd.buttons == BUTTON_ATTACK) {
+			trace_t trace2;
+			idVec3 end = trace2.endpos;
+			idAI *newAI;
+			newAI = static_cast<idAI*>(ent);
+			newAI->MoveTo(end, 0);
 		}
 	}
 /*
@@ -8521,17 +8545,17 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 
 		if (boughtCommand == true){
 			gameLocal.Printf("Already bought the command center.\n");
-			hud->SetStateString("text_alert", "Already bought the command center.");
+			hud->SetStateString("viewcomments", "Already bought the command center.");
 			return B_OWNED;
 		}
 		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Not enough resources to buy command center.\n");
-			hud->SetStateString("text_alert", "Not enough resources to buy command center.");
+			hud->SetStateString("viewcomments", "Not enough resources to buy command center.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Can buy the command center.\n");
-			hud->SetStateString("text_alert", "Can buy the command center.");
+			hud->SetStateString("viewcomments", "Can buy the command center.");
 			return B_CAN_BUY;
 		}
 		
@@ -8545,17 +8569,17 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 		gameLocal.Printf("resource amount: %d, price: %d", inventory.resource_amount, itemDef->dict.GetInt("price"));
 		if (hasCommand == false){
 			gameLocal.Printf("The command center needs to exist to buy the barracks.\n");
-			hud->SetStateString("text_alert", "The command center needs to exist to buy the barracks.");
+			hud->SetStateString("viewcomments", "The command center needs to exist to buy the barracks.");
 			return B_NOT_ALLOWED;
 		}
 		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Not enough resources to buy barracks.\n");
-			hud->SetStateString("text_alert", "Not enough resources to buy barracks.");
+			hud->SetStateString("viewcomments", "Not enough resources to buy barracks.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Can buy the barracks.\n");
-			hud->SetStateString("text_alert", "Can buy the barracks.");
+			hud->SetStateString("viewcomments", "Can buy the barracks.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8569,17 +8593,17 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 
 		if (hasBarracks == false){
 			gameLocal.Printf("The command center and barracks need to exist to buy the depot.\n");
-			hud->SetStateString("text_alert", "The command center and barracks need to exist to buy the depot.");
+			hud->SetStateString("viewcomments", "The command center and barracks need to exist to buy the depot.");
 			return B_NOT_ALLOWED;
 		}
 		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Not enough resource to buy depot.\n");
-			hud->SetStateString("text_alert", "Not enough resource to buy depot.");
+			hud->SetStateString("viewcomments", "Not enough resource to buy depot.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Can buy the depot.\n");
-			hud->SetStateString("text_alert", "Can buy the depot.");
+			hud->SetStateString("viewcomments", "Can buy the depot.");
 			return B_CAN_BUY;
 		}
 	}
@@ -8590,17 +8614,17 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 
 		if (hasCommand == false){
 			gameLocal.Printf("The command center needs to exist to buy a miner.\n");
-			hud->SetStateString("text_alert", "The command center need to exist to buy a miner.");
+			hud->SetStateString("viewcomments", "The command center need to exist to buy a miner.");
 			return B_NOT_ALLOWED;
 		}
 		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Not enough resource to buy miner.\n");
-			hud->SetStateString("text_alert", "Not enough resource to buy miner.");
+			hud->SetStateString("viewcomments", "Not enough resource to buy miner.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Can buy a miner.\n");
-			hud->SetStateString("text_alert", "Can buy a miner.");
+			hud->SetStateString("viewcomments", "Can buy a miner.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8614,17 +8638,17 @@ buildBuyStatus_t idPlayer::BuildBuyStatus(const char *buildingName)
 
 		if (hasBarracks == false){
 			gameLocal.Printf("The barracks needs to exist to buy a soldier.\n");
-			hud->SetStateString("text_alert", "The barracks need to exist to buy a soldier.");
+			hud->SetStateString("viewcomments", "The barracks need to exist to buy a soldier.");
 			return B_NOT_ALLOWED;
 		}
 		else if (inventory.resource_amount < itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Not enough resource to buy soldier.\n");
-			hud->SetStateString("text_alert", "Not enough resource to buy soldier.");
+			hud->SetStateString("viewcomments", "Not enough resource to buy soldier.");
 			return B_CANNOT_AFFORD;
 		}
 		else if (inventory.resource_amount >= itemDef->dict.GetInt("price")){
 			gameLocal.Printf("Can buy a soldier.\n");
-			hud->SetStateString("text_alert", "Can buy a soldier.");
+			hud->SetStateString("viewcomments", "Can buy a soldier.");
 			return B_CAN_BUY;
 		}
 		else{
@@ -8922,8 +8946,10 @@ void idPlayer::UnitSpawn(const char *unitName){
 	idPlayer *player;
 	float yaw;
 	idVec3 org;
-	idDict		dict;
+	idDict dict;
 	idStr miner, soldier;
+	
+	//char *name;
 
 	miner = "unit_miner";
 	soldier = "unit_soldier";
@@ -8932,11 +8958,19 @@ void idPlayer::UnitSpawn(const char *unitName){
 	dict.Set("classname", unitName);
 	if (miner.Cmp(unitName) == 0){
 		const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "miner", false, false));
+		minerCount += 1;
 		dict = entDef->dict;
+		gameLocal.Printf("miner count: %d", minerCount);
+		sprintf(name, "Miner %d", minerCount);
+		dict.Set("npc_name", name);
 	}
 	else if (soldier.Cmp(unitName) == 0){
-		const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "char_marine", false, false));
+		const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "convoy2_char_marine_tech", false, false));
+		soldierCount += 1;
 		dict = entDef->dict;
+		gameLocal.Printf("soldier count: %d", soldierCount);
+		sprintf(name, "Soldier %d", soldierCount);
+		dict.Set("npc_name", name);
 	}
 
 	//Set spawn location in front of player
@@ -8945,8 +8979,7 @@ void idPlayer::UnitSpawn(const char *unitName){
 //	dict.Set("","");
 	org = player->GetPhysics()->GetOrigin() + idAngles(0, yaw, 0).ToForward() * 80 + idVec3(0, 0, 5);
 	dict.Set("origin", org.ToString());
-	spawnCount += 1;
-	dict.Set("npc_name", "");
+	
 	gameLocal.SpawnEntityDef(dict, &ent);
 	
 	if (ent){
