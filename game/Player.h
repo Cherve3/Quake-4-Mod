@@ -217,6 +217,9 @@ public:
 	int						powerupEndTime[ POWERUP_MAX ];
 	int						weaponMods[ MAX_WEAPONS ];
 	int						resource_amount;					//current amount of resources
+	
+	idList<idEntity *>		selectedNPC;
+	trace_t					trace;
 
  	// multiplayer
  	int						ammoPredictTime;
@@ -374,6 +377,8 @@ public:
 
 	int						minerCount;			// Number of miners spawned.
 	int						soldierCount;		// Number of soldiers spawned.
+	int						vehicleCount;		// Number of vehicles spawned.
+
 //CHERVE END
 	int						lastDmgTime;
 	int						deathClearContentsTime;
@@ -654,7 +659,7 @@ public:
 	bool					AttemptToBuyBuild(const char *buildingName);
 	int						GetBuildCost(const char *buildingName);
 	void					PlayerStore(int select);
-	void					CommandNPC(const char *unit);
+	void					CommandNPC( void );
 	void					DropBuilding(int select);
 	void					UnitSpawn(const char *unitName);
 //CHERVE END
@@ -1047,7 +1052,6 @@ private:
 	int						oldInventoryWeapons;
 
 	const idDeclEntityDef*	itemCosts;
-	const idDeclEntityDef*	buildCosts;
 
 	bool					WantSmoothing( void ) const;
 	void					PredictionErrorDecay( void );

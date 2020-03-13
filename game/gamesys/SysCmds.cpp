@@ -2945,70 +2945,147 @@ void Cmd_BuyItem_f( const idCmdArgs& args ) {
 	player->GenerateImpulseForBuyAttempt( args.Argv(1) );
 }
 
-void Cmd_UnitSelectMachineGun_f(const idCmdArgs& args){
-	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->PlayerStore(1);
+void Cmd_Buy_Command_f(const idCmdArgs& args){
+
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	trace_t trace = player->inventory.trace;
+
+	if (player->buyMenuOpen == true){
+		player->PlayerStore(1);
+	}
+	else if (player->droppingItem == true){
+		player->DropBuilding(1);
+	}
+	else{
+//		bool tracePoint = gameLocal.TracePoint(player, trace, player->firstPersonViewOrigin, trace.endpos, NULL, player);
+//		if (tracePoint){
+			player->CommandNPC();
+/*		}
+		else{
+			player->hud->SetStateString("viewcomments", "Invalid trace.");
+		}*/
+		
+	}
+}
+
+void Cmd_Buy_Barracks_f(const idCmdArgs& args){
+
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	trace_t trace = player->inventory.trace;
+
+	if (player->buyMenuOpen == true){
+		player->PlayerStore(2);
+	}
+	else if (player->droppingItem == true){
+		player->DropBuilding(2);
+	}
+	else{
+//		bool tracePoint = gameLocal.TracePoint(player, trace, player->firstPersonViewOrigin, trace.endpos, NULL, player);
+//		if (tracePoint){
+			player->CommandNPC();
+/*		}
+		else{
+			player->hud->SetStateString("viewcomments", "Invalid trace.");
+		}*/
+	}
+}
+
+void Cmd_Buy_Depot_f(const idCmdArgs& args){
+
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	trace_t trace = player->inventory.trace;
+
+	if (player->buyMenuOpen == true){
+		player->PlayerStore(3);
 	}
 	else if (gameLocal.GetLocalPlayer()->droppingItem == true){
-		gameLocal.GetLocalPlayer()->DropBuilding(1);
+		player->DropBuilding(3);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(1));
+		//		bool tracePoint = gameLocal.TracePoint(player, trace, player->firstPersonViewOrigin, trace.endpos, NULL, player);
+		//		if (tracePoint){
+		player->CommandNPC();
+		/*		}
+		else{
+		player->hud->SetStateString("viewcomments", "Invalid trace.");
+		}
+		}*/
 	}
 }
 
-void Cmd_UnitSelectShotgun_f(const idCmdArgs& args){
-	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->PlayerStore(2);
-	}
-	else if (gameLocal.GetLocalPlayer()->droppingItem == true){
-		gameLocal.GetLocalPlayer()->DropBuilding(2);
+void Cmd_Buy_Miner_f(const idCmdArgs& args){
+
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	trace_t trace = player->inventory.trace;
+
+	if (player->buyMenuOpen == true){
+		player->PlayerStore(4);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(2));
+		//		bool tracePoint = gameLocal.TracePoint(player, trace, player->firstPersonViewOrigin, trace.endpos, NULL, player);
+		//		if (tracePoint){
+		player->CommandNPC();
+		/*		}
+		else{
+		player->hud->SetStateString("viewcomments", "Invalid trace.");
+		}*/
 	}
 }
 
-void Cmd_UnitSelectMedic_f(const idCmdArgs& args){
-	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->PlayerStore(3);
-	}
-	else if (gameLocal.GetLocalPlayer()->droppingItem == true){
-		gameLocal.GetLocalPlayer()->DropBuilding(3);
+void Cmd_Buy_Soldier_f(const idCmdArgs& args){
+
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	trace_t trace = player->inventory.trace;
+
+	if (player->buyMenuOpen == true){
+		player->PlayerStore(5);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(3));
+		//		bool tracePoint = gameLocal.TracePoint(player, trace, player->firstPersonViewOrigin, trace.endpos, NULL, player);
+		//		if (tracePoint){
+		player->CommandNPC();
+		/*		}
+		else{
+		player->hud->SetStateString("viewcomments", "Invalid trace.");
+		}*/
 	}
 }
 
-void Cmd_UnitSelectEngineer_f(const idCmdArgs& args){
-	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->PlayerStore(4);
-	}
-	else{
-		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(4));
-	}
-}
+void Cmd_Buy_Vehicle_f(const idCmdArgs& args){
 
-void Cmd_UnitSelectVehicle_f(const idCmdArgs& args){
-	if (gameLocal.GetLocalPlayer()->buyMenuOpen == true){
-		gameLocal.GetLocalPlayer()->PlayerStore(5);
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	trace_t trace = player->inventory.trace;
+
+	if (player->buyMenuOpen == true){
+		player->PlayerStore(6);
 	}
 	else{
-		gameLocal.GetLocalPlayer()->CommandNPC(args.Argv(5));
+		//		bool tracePoint = gameLocal.TracePoint(player, trace, player->firstPersonViewOrigin, trace.endpos, NULL, player);
+		//		if (tracePoint){
+		player->CommandNPC();
+		/*		}
+		else{
+		player->hud->SetStateString("viewcomments", "Invalid trace.");
+		}*/
 	}
 }
 
 void Cmd_dropBuilding_f(const idCmdArgs& args){
+
+	idPlayer* player = gameLocal.GetLocalPlayer();
 	
-	if (gameLocal.GetLocalPlayer()->droppingItem == false){
-		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "What building do you want to drop?");
-		gameLocal.GetLocalPlayer()->droppingItem = true;
+	if (player->droppingItem == false){
+		player->hud->SetStateString("viewcomments", "Choose building to place.");
+		player->droppingItem = true;
 	}
 	else{
-		gameLocal.GetLocalPlayer()->droppingItem = false;
-		gameLocal.GetLocalPlayer()->hud->SetStateString("viewcomments", "");
+		player->droppingItem = false;
+		player->hud->SetStateString("viewcomments", "");
 	}
+}
+
+void Cmd_Select_Item_f(const idCmdArgs& args){
+
 }
 
 // RITUAL END
@@ -3303,13 +3380,15 @@ void idGameLocal::InitConsoleCommands( void ) {
 // squirrel: Mode-agnostic buymenus
 	cmdSystem->AddCommand( "buyMenu",				Cmd_ToggleBuyMenu_f,		CMD_FL_GAME,				"Toggle buy menu (if in a buy zone and the game type supports it)" );
 	cmdSystem->AddCommand( "buy",					Cmd_BuyItem_f,				CMD_FL_GAME,				"Buy an item (if in a buy zone and the game type supports it)" );
-	cmdSystem->AddCommand("machinegun",				Cmd_UnitSelectMachineGun_f, CMD_FL_GAME,				"Selects all the units with a machine gun. If buy menu is open purchases command center.");
-	cmdSystem->AddCommand("shotgun",				Cmd_UnitSelectShotgun_f,	CMD_FL_GAME,				"Selects all the units with a machine gun. If buy menu is open purchases barracks.");
-	cmdSystem->AddCommand("medic",					Cmd_UnitSelectMedic_f,		CMD_FL_GAME,				"Selects all the medical units. If buy menu is open purchases vehicle depot.");
-	cmdSystem->AddCommand("engineer",				Cmd_UnitSelectEngineer_f,	CMD_FL_GAME,				"Selects all the engineer units");
-	cmdSystem->AddCommand("vehicle",				Cmd_UnitSelectVehicle_f,	CMD_FL_GAME,				"Selects all the vehicle units");
+	cmdSystem->AddCommand("command",				Cmd_Buy_Command_f,			CMD_FL_GAME,				"If buy menu is open purchases command center.");
+	cmdSystem->AddCommand("barracks",				Cmd_Buy_Barracks_f,			CMD_FL_GAME,				"If buy menu is open purchases barracks.");
+	cmdSystem->AddCommand("depot",					Cmd_Buy_Depot_f,			CMD_FL_GAME,				"If buy menu is open purchases vehicle depot.");
+	cmdSystem->AddCommand("miner",					Cmd_Buy_Miner_f,			CMD_FL_GAME,				"If buy menu is open purchases a miner.");
+	cmdSystem->AddCommand("soldier",				Cmd_Buy_Soldier_f,			CMD_FL_GAME,				"If buy menu is open purchases a soldier.");
+	cmdSystem->AddCommand("vehicle",				Cmd_Buy_Vehicle_f,			CMD_FL_GAME,				"If buy menu is open purchases a vehicle.");
 	cmdSystem->AddCommand("dropItem",				Cmd_dropBuilding_f,			CMD_FL_GAME,				"Drops a building on to the map");
-	
+	cmdSystem->AddCommand("selectItem",				Cmd_Select_Item_f,			CMD_FL_GAME,				"Select Item.");
+
 	// RITUAL END
 
 }

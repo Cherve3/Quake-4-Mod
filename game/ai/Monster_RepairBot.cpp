@@ -163,13 +163,11 @@ void rvMonsterRepairBot::Mine(repairBotArm_t& arm){
 	if (arm.joint == INVALID_JOINT) {
 		return;
 	}
+	//int numEntities = gameLocal.EntitiesWithinRadius(origin, 50, &ent, 50);
 
-
-
-	int numEntities = gameLocal.EntitiesWithinRadius(origin, 50, &ent, 50);
-
-	if (numEntities > 0){
-		gameLocal.Printf("Number of entities in radius: %d", numEntities);
+	if (/*numEntities > 0 &&*/ ent != NULL){
+		gameLocal.Printf("Miner Found resources!");
+		//gameLocal.Printf("Number of entities in radius: %d", numEntities);
 		Attack("repair",arm.joint,ent, origin);
 	};
 }
