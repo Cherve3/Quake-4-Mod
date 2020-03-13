@@ -9005,6 +9005,7 @@ void idPlayer::UnitSpawn(const char *unitName){
 		gameLocal.Printf("soldier count: %d", soldierCount);
 		sprintf(name, "Soldier %d", soldierCount);
 		dict.Set("npc_name", name);
+		dict.Set("anim", "idle");
 	}
 	else if (vehicle.Cmp(unitName) == 0){
 		const idDeclEntityDef *entDef = static_cast<const idDeclEntityDef *>(declManager->FindType(DECL_ENTITYDEF, "vehicle_gev", false, false));

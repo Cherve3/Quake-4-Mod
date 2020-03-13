@@ -3085,7 +3085,9 @@ void Cmd_dropBuilding_f(const idCmdArgs& args){
 }
 
 void Cmd_Select_Item_f(const idCmdArgs& args){
-
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	player->inventory.selectedNPC.Clear();
+	player->hud->GetStateString("viewcomments", "Deselected all units.");
 }
 
 // RITUAL END
